@@ -58,7 +58,7 @@ Eine eigene Web-App, die genau deinen Workflow abbildet:
 - **Eine Ansicht für alles:** Termine als Zeitleiste links, Aufgaben rechts, Überfälliges oben rot markiert, Top 3 hervorgehoben, Filter nach Projekt.
 - **Aufs Handy als App:** als „PWA“ – einmal im Browser öffnen, „Zum Startbildschirm hinzufügen“, fertig. Kein App-Store nötig.
 - **Erinnerungen:** über die Google-Tasks- und Kalender-Benachrichtigungen auf dem Handy, die ohnehin schon funktionieren.
-- **Kostenlos gehostet** über GitHub Pages.
+- **Komplett kostenlos:** Google Kalender und Google Tasks samt Schnittstellen kosten bei privater Nutzung nichts, das Hosting läuft gratis über GitHub Pages (Repo muss dafür öffentlich sein, es enthält aber nur Programmcode, keine Aufgaben) oder alternativ Cloudflare Pages / Netlify (auch mit privatem Repo kostenlos).
 
 **Meine Empfehlung:** Heute mit **Weg A** starten (die Methode einüben, kostet nichts), parallel **Weg C** bauen. Da Weg C auf denselben Google-Daten aufsetzt, geht nichts verloren – das Cockpit ist einfach die bessere Oberfläche obendrauf. Wer lieber gar nichts bauen will, nimmt Weg B.
 

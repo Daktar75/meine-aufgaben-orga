@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Tages-Cockpit Entwurf</title>
+<title>To-Do Cockpit Entwurf</title>
 <style>
 :root{--bg:#0f0b1f;--bg2:#1a1333;--card:rgba(255,255,255,.06);--line:rgba(255,255,255,.12);--text:#ece9ff;--muted:#a39cc9;--accent:#8b5cf6;--accent2:#6366f1;--red:#f87171;--green:#34d399;--amber:#fbbf24}
 *{box-sizing:border-box}
@@ -13,22 +13,24 @@ body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:va
 header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;gap:12px;flex-wrap:wrap}
 h1{font-size:26px;margin:0;font-weight:650;letter-spacing:-.01em}
 .date{color:var(--muted);font-size:14px;margin-top:4px}
-.add{flex:1;max-width:420px;display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 14px;color:var(--muted);font-size:14px;backdrop-filter:blur(12px)}
+.add{flex:1;max-width:440px;display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 14px;color:var(--muted);font-size:14px}
 .add b{color:var(--accent)}
 .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}
 .stat{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px 14px}
 .stat .n{font-size:24px;font-weight:700}
 .stat .l{font-size:12px;color:var(--muted)}
-.grid{display:grid;grid-template-columns:1fr 1.35fr;gap:16px}
+.grid{display:grid;grid-template-columns:.8fr 1.5fr;gap:16px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:16px;backdrop-filter:blur(14px)}
 .card h2{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:0 0 12px;font-weight:600}
-.ev{display:flex;gap:12px;padding:9px 0;border-top:1px solid var(--line)}
-.ev:first-of-type{border-top:0}
-.t{font-variant-numeric:tabular-nums;color:var(--muted);font-size:13px;width:44px;flex:none}
-.evb{border-left:3px solid var(--c,#6366f1);padding-left:10px;font-size:14px}
-.evb small{display:block;color:var(--muted);font-size:12px}
-.now{display:flex;align-items:center;gap:8px;color:var(--red);font-size:11px;margin:4px 0}
-.now:after{content:"";flex:1;height:1px;background:var(--red)}
+.proj{display:flex;align-items:center;gap:10px;padding:10px;border-radius:12px;font-size:14px}
+.proj+.proj{margin-top:2px}
+.proj.on{background:rgba(139,92,246,.18)}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--c);flex:none}
+.proj .cnt{margin-left:auto;color:var(--muted);font-size:12px;font-variant-numeric:tabular-nums}
+.proj .warn{color:var(--red);font-size:11px;margin-left:6px}
+.bar{height:6px;border-radius:6px;background:rgba(255,255,255,.08);margin-top:14px;overflow:hidden}
+.bar i{display:block;height:100%;width:30%;background:linear-gradient(90deg,var(--green),#22d3ee)}
+.small{font-size:12px;color:var(--muted);margin-top:6px}
 .task{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:12px;font-size:14px}
 .task+.task{margin-top:4px}
 .box{width:18px;height:18px;border:2px solid var(--muted);border-radius:6px;flex:none}
@@ -47,10 +49,14 @@ h1{font-size:26px;margin:0;font-weight:650;letter-spacing:-.01em}
 .phone h1{font-size:20px}
 .phone .card{padding:12px;border-radius:16px;margin-bottom:10px}
 .phone .task{font-size:13px;padding:8px}
-.tabbar{display:flex;justify-content:space-around;margin-top:12px;padding-right:56px;font-size:11px;color:var(--muted)}
+.quick{background:rgba(139,92,246,.15);border:1px solid rgba(139,92,246,.4);border-radius:14px;padding:10px 12px;font-size:13px;color:var(--muted);margin-bottom:10px}
+.quick b{color:var(--text);font-weight:500}
+.chips{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.chips span{font-size:11px;padding:3px 8px;border-radius:999px;background:rgba(255,255,255,.08)}
+.tabbar{display:flex;justify-content:space-around;margin-top:12px;font-size:11px;color:var(--muted);padding-right:56px}
 .tabbar .on{color:var(--accent)}
 .fab{position:absolute;right:18px;bottom:-14px;width:48px;height:48px;border-radius:16px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:grid;place-items:center;font-size:26px;box-shadow:0 10px 30px rgba(139,92,246,.5)}
-.cap{color:var(--muted);font-size:12px;text-align:center;margin-top:10px}
+.cap{color:var(--muted);font-size:12px;text-align:center;margin-top:24px}
 @media(max-width:760px){.grid{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,1fr)}.phone{flex-basis:100%;max-width:320px;margin:0 auto}}
 </style>
 </head>
@@ -58,64 +64,64 @@ h1{font-size:26px;margin:0;font-weight:650;letter-spacing:-.01em}
 <div class="wrap">
  <div class="desk">
   <header>
-   <div><h1>Guten Morgen, Lars</h1><div class="date">Dienstag, 3. November · KW 45</div></div>
-   <div class="add">＋ <span>Neue Aufgabe … z. B. <b>Angebot schicken #Kunde-B morgen</b></span></div>
+   <div><h1>Heute, Lars</h1><div class="date">Dienstag, 3. November · KW 45</div></div>
+   <div class="add">＋ <span>Neues To-Do … z. B. <b>Angebot schicken #KundeB morgen 15:00</b></span></div>
   </header>
   <div class="stats">
-   <div class="stat"><div class="n">5</div><div class="l">Termine heute</div></div>
-   <div class="stat"><div class="n">7</div><div class="l">Aufgaben heute</div></div>
-   <div class="stat"><div class="n" style="color:var(--red)">2</div><div class="l">Überfällig</div></div>
+   <div class="stat"><div class="n">9</div><div class="l">Für heute</div></div>
+   <div class="stat"><div class="n" style="color:var(--red)">2</div><div class="l">Liegen geblieben</div></div>
+   <div class="stat"><div class="n" style="color:var(--amber)">3</div><div class="l">Top heute</div></div>
    <div class="stat"><div class="n" style="color:var(--green)">3</div><div class="l">Erledigt</div></div>
   </div>
   <div class="grid">
    <div class="card">
-    <h2>Termine heute</h2>
-    <div class="ev"><div class="t">08:30</div><div class="evb" style="--c:#8b5cf6">Tagesplanung<small>5 Min · Fokus</small></div></div>
-    <div class="ev"><div class="t">09:30</div><div class="evb" style="--c:#38bdf8">Jour fixe Projekt Alpha<small>Teams · 45 Min</small></div></div>
-    <div class="now">JETZT 10:42</div>
-    <div class="ev"><div class="t">11:00</div><div class="evb" style="--c:#f472b6">Abstimmung Kunde B<small>Raum 2.14</small></div></div>
-    <div class="ev"><div class="t">13:30</div><div class="evb" style="--c:#8b5cf6">⏱ Block: Konzept Gamma schreiben<small>aus Aufgabe geblockt · 90 Min</small></div></div>
-    <div class="ev"><div class="t">16:00</div><div class="evb" style="--c:#34d399">Review Projekt Delta<small>Online · 30 Min</small></div></div>
-    <div class="ev"><div class="t">17:15</div><div class="evb" style="--c:#8b5cf6">Feierabend-Check<small>3 Min</small></div></div>
+    <h2>Projekte</h2>
+    <div class="proj on"><div class="dot" style="--c:#8b5cf6"></div>Alle<span class="cnt">23</span></div>
+    <div class="proj"><div class="dot" style="--c:#fbbf24"></div>Eingang<span class="cnt">4</span></div>
+    <div class="proj"><div class="dot" style="--c:#38bdf8"></div>Alpha<span class="cnt">7</span><span class="warn">●1</span></div>
+    <div class="proj"><div class="dot" style="--c:#f472b6"></div>Kunde B<span class="cnt">5</span><span class="warn">●1</span></div>
+    <div class="proj"><div class="dot" style="--c:#a78bfa"></div>Gamma<span class="cnt">3</span></div>
+    <div class="proj"><div class="dot" style="--c:#34d399"></div>Delta<span class="cnt">2</span></div>
+    <div class="proj"><div class="dot" style="--c:#94a3b8"></div>Orga<span class="cnt">2</span></div>
+    <div class="bar"><i></i></div>
+    <div class="small">Heute 3 von 9 erledigt</div>
    </div>
    <div class="card">
-    <h2>Aufgaben</h2>
+    <h2>Meine To-Dos heute</h2>
     <div class="sec"><span>⚠ Liegen geblieben</span><span>2</span></div>
-    <div class="task over"><div class="box"></div><span class="txt">Rechnung Lieferant prüfen<span class="meta">seit gestern offen</span></span><div class="btns"><i>→ Heute</i><i>→ Morgen</i></div><span class="tag" style="--c:#38bdf8">#Alpha</span></div>
-    <div class="task over"><div class="box"></div><span class="txt">Rückruf Herr Meier<span class="meta">seit Freitag offen</span></span><div class="btns"><i>→ Heute</i><i>→ Morgen</i></div><span class="tag" style="--c:#f472b6">#Kunde-B</span></div>
+    <div class="task over"><div class="box"></div><span class="txt">Rechnung Lieferant prüfen<span class="meta">seit gestern offen</span></span><div class="btns"><i>→ Heute</i><i>→ Morgen</i></div><span class="tag" style="--c:#38bdf8">Alpha</span></div>
+    <div class="task over"><div class="box"></div><span class="txt">Rückruf Herr Meier<span class="meta">seit Freitag offen</span></span><div class="btns"><i>→ Heute</i><i>→ Morgen</i></div><span class="tag" style="--c:#f472b6">Kunde B</span></div>
     <div class="sec"><span>★ Top 3 heute</span><span>1 / 3</span></div>
-    <div class="task top done"><div class="box"></div><span class="txt">Protokoll Jour fixe verschicken</span><span class="tag" style="--c:#38bdf8">#Alpha</span></div>
-    <div class="task top"><span class="star">★</span><div class="box"></div><span class="txt">Konzept Gamma – Entwurf fertig</span><span class="tag" style="--c:#a78bfa">#Gamma</span></div>
-    <div class="task top"><span class="star">★</span><div class="box"></div><span class="txt">Angebot Kunde B finalisieren · 15:00 🔔</span><span class="tag" style="--c:#f472b6">#Kunde-B</span></div>
+    <div class="task top done"><div class="box"></div><span class="txt">Protokoll Jour fixe verschicken</span><span class="tag" style="--c:#38bdf8">Alpha</span></div>
+    <div class="task top"><span class="star">★</span><div class="box"></div><span class="txt">Konzept Gamma – Entwurf fertig</span><span class="tag" style="--c:#a78bfa">Gamma</span></div>
+    <div class="task top"><span class="star">★</span><div class="box"></div><span class="txt">Angebot Kunde B finalisieren · 15:00 🔔</span><span class="tag" style="--c:#f472b6">Kunde B</span></div>
     <div class="sec"><span>Wenn Zeit bleibt</span><span>4</span></div>
-    <div class="task done"><div class="box"></div><span class="txt">Reisekosten einreichen</span><span class="tag" style="--c:#94a3b8">#Orga</span></div>
-    <div class="task"><div class="box"></div><span class="txt">Testplan Delta kommentieren</span><span class="tag" style="--c:#34d399">#Delta</span></div>
-    <div class="task done"><div class="box"></div><span class="txt">Zugang neues Tool beantragen</span><span class="tag" style="--c:#94a3b8">#Orga</span></div>
-    <div class="task"><div class="box"></div><span class="txt">Folien für Lenkungskreis sammeln</span><span class="tag" style="--c:#38bdf8">#Alpha</span></div>
+    <div class="task done"><div class="box"></div><span class="txt">Reisekosten einreichen</span><span class="tag" style="--c:#94a3b8">Orga</span></div>
+    <div class="task"><div class="box"></div><span class="txt">Testplan Delta kommentieren</span><span class="tag" style="--c:#34d399">Delta</span></div>
+    <div class="task done"><div class="box"></div><span class="txt">Zugang neues Tool beantragen</span><span class="tag" style="--c:#94a3b8">Orga</span></div>
+    <div class="task"><div class="box"></div><span class="txt">Folien für Lenkungskreis sammeln</span><span class="tag" style="--c:#38bdf8">Alpha</span></div>
    </div>
   </div>
  </div>
 
  <div>
  <div class="phone">
-  <h1>Heute</h1><div class="date" style="margin-bottom:12px">Di, 3. Nov · 2 überfällig</div>
-  <div class="card">
-   <h2>Als Nächstes</h2>
-   <div class="ev"><div class="t">11:00</div><div class="evb" style="--c:#f472b6">Abstimmung Kunde B<small>in 18 Min · Raum 2.14</small></div></div>
-  </div>
+  <h1>Heute</h1><div class="date" style="margin-bottom:12px">Di, 3. Nov · 2 liegen geblieben</div>
+  <div class="quick">Schnell erfassen<br><b>Rückruf Schulz #KundeB morgen 10:00▍</b>
+   <div class="chips"><span>📁 Kunde B</span><span>📅 Mi, 4. Nov</span><span>🔔 10:00</span></div></div>
   <div class="card">
    <h2>Liegen geblieben</h2>
-   <div class="task over"><div class="box"></div><span class="txt">Rechnung Lieferant prüfen</span><span class="tag" style="--c:#38bdf8">#Alpha</span></div>
-   <div class="task over"><div class="box"></div><span class="txt">Rückruf Herr Meier</span><span class="tag" style="--c:#f472b6">#Kunde-B</span></div>
+   <div class="task over"><div class="box"></div><span class="txt">Rechnung Lieferant prüfen</span><span class="tag" style="--c:#38bdf8">Alpha</span></div>
+   <div class="task over"><div class="box"></div><span class="txt">Rückruf Herr Meier</span><span class="tag" style="--c:#f472b6">Kunde B</span></div>
   </div>
   <div class="card">
    <h2>Top 3</h2>
    <div class="task done"><div class="box"></div><span class="txt">Protokoll verschicken</span></div>
-   <div class="task"><div class="box"></div><span class="txt">Konzept Gamma</span><span class="tag" style="--c:#a78bfa">#Gamma</span></div>
-   <div class="task"><div class="box"></div><span class="txt">Angebot Kunde B 🔔</span><span class="tag" style="--c:#f472b6">#Kunde-B</span></div>
+   <div class="task"><div class="box"></div><span class="txt">Konzept Gamma</span><span class="tag" style="--c:#a78bfa">Gamma</span></div>
+   <div class="task"><div class="box"></div><span class="txt">Angebot Kunde B 🔔</span><span class="tag" style="--c:#f472b6">Kunde B</span></div>
   </div>
   <div class="fab">＋</div>
-  <div class="tabbar"><span class="on">● Heute</span><span>Kalender</span><span>Projekte</span><span>Eingang</span></div>
+  <div class="tabbar"><span class="on">● Heute</span><span>Projekte</span><span>Eingang</span></div>
  </div>
  <div class="cap">Auf dem Handy als App (Startbildschirm)</div>
  </div>

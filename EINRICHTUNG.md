@@ -23,7 +23,7 @@ Das erlaubt der App, eine einzige Datei in einem privaten Bereich deines Google 
 4. Menü **APIs & Dienste** → **OAuth-Zustimmungsbildschirm** (bei neuer Oberfläche: **Google Auth Platform**):
    - Nutzertyp **Extern**, App-Name `Meine Aufgaben`, deine E-Mail als Support- und Kontakt-Adresse.
    - Bereiche (Scopes) hinzufügen: **`.../auth/drive.appdata`** („Eigene Konfigurationsdaten in Google Drive ansehen und verwalten“).
-   - Veröffentlichungsstatus auf **In Produktion** stellen. Dieser Bereich ist unkritisch, deshalb ist keine Prüfung durch Google nötig.
+   - Veröffentlichungsstatus bleibt auf **Test**. Unter **Zielgruppe → Testnutzer** die eigene Gmail-Adresse eintragen. („In Produktion“ verlangt Startseite und Datenschutzerklärung, das ist für eine private App unnötig. Google fragt dann etwa einmal pro Woche erneut nach der Zustimmung.)
 5. Menü **Anmeldedaten** → **Anmeldedaten erstellen** → **OAuth-Client-ID**:
    - Anwendungstyp **Webanwendung**, Name `Aufgaben-App`.
    - Bei **Autorisierte JavaScript-Quellen** eintragen: `https://daktar75.github.io` (ohne Schrägstrich am Ende und ohne Pfad).

@@ -22,11 +22,12 @@ input,select,textarea{font:inherit;color:inherit}
 #app{display:grid;grid-template-columns:250px 1fr;gap:20px;max-width:1180px;margin:0 auto;padding:24px 20px 40px}
 .side{position:sticky;top:24px;align-self:start;background:var(--card);border:1px solid var(--line);border-radius:22px;padding:16px 12px;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);max-height:calc(100vh - 48px);overflow:auto}
 .brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:16px;padding:2px 10px 14px;letter-spacing:-.01em}
-.brand i{width:28px;height:28px;border-radius:9px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:grid;place-items:center;font-style:normal;font-size:15px}
+.brand .logo{width:32px;height:32px;border-radius:10px;box-shadow:none}
 .nav{display:flex;align-items:center;gap:10px;width:100%;padding:10px 12px;border-radius:12px;text-align:left;color:var(--text)}
 .nav:hover{background:rgba(255,255,255,.05)}
 .nav.on{background:linear-gradient(90deg,rgba(139,92,246,.32),rgba(99,102,241,.12));box-shadow:inset 0 0 0 1px rgba(139,92,246,.4)}
-.nav .ic{width:18px;text-align:center;color:var(--muted)}
+.nav .ic{width:20px;display:grid;place-items:center;color:var(--muted)}
+.nav .ic svg.i{width:19px;height:19px}
 .nav.on .ic{color:#c4b5fd}
 .nav .dot{width:10px;height:10px;border-radius:50%;background:var(--c);margin:0 4px}
 .nav .n{margin-left:auto;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
@@ -34,10 +35,18 @@ input,select,textarea{font:inherit;color:inherit}
 .sep{display:flex;justify-content:space-between;align-items:center;font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);padding:16px 12px 6px}
 .sep button{color:var(--accent);font-size:18px;line-height:1;padding:0 4px}
 .main{min-width:0}
-.head{display:flex;justify-content:space-between;align-items:flex-end;gap:14px;flex-wrap:wrap;margin-bottom:16px}
+.head{display:grid;grid-template-columns:1fr auto auto;align-items:center;gap:10px 14px;margin-bottom:16px}
+.logo{width:46px;height:46px;border-radius:14px;box-shadow:0 6px 22px rgba(99,102,241,.5);display:block}
+svg.i{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.pill svg.i{width:19px;height:19px}
+.tabs button.on svg.i-star{fill:currentColor}
+.nav.on svg.i-star{fill:currentColor}
+.done-bg{position:absolute;inset:0;display:none;align-items:center;justify-content:flex-start;padding-left:24px;font-weight:700;font-size:14px;color:#052e1c;background:linear-gradient(270deg,rgba(52,211,153,.15),#34d399)}
+.rw.swiping-r .done-bg{display:flex}
+.rw.swiping-r .row{background:#1d1736!important;touch-action:pan-y}
 h1{font-size:28px;margin:0;font-weight:700;letter-spacing:-.02em}
 .sub{color:var(--muted);font-size:14px;margin-top:3px}
-.tools{display:flex;gap:8px;align-items:center}
+.tools{display:flex;gap:8px;align-items:center;justify-content:flex-end}
 .pill{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:12px;background:var(--card);border:1px solid var(--line);font-size:13px;color:var(--text)}
 .pill:hover{background:var(--card2)}
 .fsel{appearance:none;-webkit-appearance:none;color-scheme:dark;max-width:160px;padding-right:30px;outline:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23a39cc9' stroke-width='2'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center}
@@ -120,9 +129,11 @@ h1{font-size:28px;margin:0;font-weight:700;letter-spacing:-.02em}
 #toast.on{display:flex}
 #toast button{color:#c4b5fd;font-weight:700}
 @media(max-width:820px){
- #app{display:block;padding:calc(14px + env(safe-area-inset-top,0px)) 14px calc(130px + var(--safe-b))}
+ #app{display:block;padding:calc(14px + env(safe-area-inset-top,0px)) 14px calc(150px + var(--safe-b))}
  .side{display:none}
  h1{font-size:26px}
+ .head{grid-template-columns:1fr auto}
+ .head .tools{grid-column:1/-1;grid-row:2;justify-content:flex-start;flex-wrap:wrap}
  .stats{grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:12px}
  .stat{padding:8px 14px;border-radius:16px}.stat b{font-size:22px}.stat span{font-size:11.5px}
  .bar{margin-bottom:14px}
@@ -135,19 +146,20 @@ h1{font-size:28px;margin:0;font-weight:700;letter-spacing:-.02em}
  .row:not(.over) .acts{display:none}
  .acts .xdel{display:none}
  .card{padding:4px 8px 8px;border-radius:20px}
- .fab{display:grid;position:fixed;right:18px;bottom:calc(76px + var(--safe-b));width:58px;height:58px;border-radius:19px;background:linear-gradient(135deg,var(--accent),var(--accent2));font-size:32px;place-items:center;box-shadow:0 10px 30px rgba(139,92,246,.55);z-index:40;color:#fff}
+ .fab{display:grid;position:fixed;right:18px;bottom:calc(98px + var(--safe-b));width:58px;height:58px;border-radius:19px;background:linear-gradient(135deg,var(--accent),var(--accent2));font-size:32px;place-items:center;box-shadow:0 10px 30px rgba(139,92,246,.55);z-index:40;color:#fff}
  .tabs{display:flex;position:fixed;left:0;right:0;bottom:0;padding:8px 8px calc(8px + var(--safe-b));background:rgba(20,13,45,.88);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-top:1px solid var(--line);z-index:30}
- .tabs button{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11px;color:var(--muted);padding:6px 0;position:relative}
- .tabs button b{font-size:19px;font-weight:400}
+ .tabs button{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:12px;color:var(--muted);padding:8px 0 6px;position:relative}
+ .tabs button svg.i{width:30px;height:30px;stroke-width:1.8}
  .tabs button.on{color:#c4b5fd}
  .tabs .badge{position:absolute;top:0;right:22%;background:var(--red);color:#fff;font-size:10px;border-radius:999px;padding:1px 6px;font-weight:700}
  #overlay{align-items:flex-end;padding:0}
  .sheet{max-width:none;border-radius:24px 24px 0 0;max-height:92vh;padding-bottom:calc(20px + var(--safe-b))}
- #toast{bottom:calc(92px + var(--safe-b))}
+ #toast{bottom:calc(112px + var(--safe-b))}
 }
 </style>
 </head>
 <body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#a78bfa"/><stop offset="1" stop-color="#6366f1"/></linearGradient></defs><symbol id="logo" viewBox="0 0 64 64"><linearGradient id="ng" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fde68a"/><stop offset="1" stop-color="#fbbf24"/></linearGradient><rect width="64" height="64" rx="16" fill="url(#lg)"/><g transform="rotate(-7 32 32)"><path d="M13 11h38v29L39 53H13z" fill="url(#ng)"/><path d="M51 40L39 53v-8a5 5 0 0 1 5-5z" fill="#d99a0b"/><path d="M21 30l8.5 8.5L44 20" fill="none" stroke="#4c1d95" stroke-width="7.5" stroke-linecap="round" stroke-linejoin="round"/></g></symbol></svg>
 <div id="app"><aside class="side" id="side"></aside><main class="main" id="main"></main></div>
 <button class="fab" id="fab" aria-label="Neue Aufgabe">+</button>
 <nav class="tabs" id="tabs"></nav>
@@ -173,6 +185,16 @@ const diff = (a, b) => Math.round((fromYmd(a) - fromYmd(b)) / 864e5);
 const uid = () => Math.random().toString(36).slice(2, 10);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const $ = s => document.querySelector(s);
+const ICON = {
+  today: '<circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.7 2.7L16 9.5"/>',
+  star: '<path d="M12 3.5l2.6 5.4 5.9.8-4.3 4.1 1 5.9L12 17l-5.2 2.7 1-5.9L3.5 9.7l5.9-.8z"/>',
+  cal: '<rect x="4" y="5.5" width="16" height="14.5" rx="3"/><path d="M4 10h16M8.5 3.5v4M15.5 3.5v4"/>',
+  folder: '<path d="M3.5 7.5a2 2 0 0 1 2-2h4l2 2.5h7a2 2 0 0 1 2 2v7.5a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2z"/>',
+  gear: '<path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/>',
+  sun: '<circle cx="12" cy="12" r="4"/><path d="M12 3v2.5M12 18.5V21M3 12h2.5M18.5 12H21M5.6 5.6l1.8 1.8M16.6 16.6l1.8 1.8M5.6 18.4l1.8-1.8M16.6 7.4l1.8-1.8"/>',
+  check: '<path d="M5 12.5l4.5 4.5L19 7.5"/>'
+};
+const ico = n => `<svg class="i i-${n}" viewBox="0 0 24 24" aria-hidden="true">${ICON[n]}</svg>`;
 const isMobile = () => matchMedia('(max-width:820px)').matches;
 const norm = s => s.toLowerCase().replace(/[\s_-]+/g, '');
 const nextWeekday = (from, wd) => { let n = (wd - fromYmd(from).getDay() + 7) % 7; if (n === 0) n = 7; return addDays(from, n); };
@@ -318,7 +340,7 @@ function meta(t, mode) {
 function row(t, o = {}) {
   const p = proj(t.project), over = isOver(t), td = today();
   const acts = t.done ? '' : `<div class="acts">${t.due !== td ? '<button data-a="today">Heute</button>' : ''}${t.due !== addDays(td, 1) ? '<button data-a="tomorrow">Morgen</button>' : ''}<button class="xdel" data-a="del2" aria-label="Löschen">✕</button></div>`;
-  return `<div class="rw"><div class="del-bg">Löschen</div><div class="row ${over ? 'over' : ''} ${o.top ? 'top' : ''} ${t.done ? 'done' : ''}" data-id="${t.id}">
+  return `<div class="rw"><div class="done-bg">${t.done ? 'Wiederherstellen' : '✓ Erledigt'}</div><div class="del-bg">Löschen</div><div class="row ${over ? 'over' : ''} ${o.top ? 'top' : ''} ${t.done ? 'done' : ''}" data-id="${t.id}">
     <button class="star ${t.star ? 'on' : ''}" data-a="star" aria-label="Markieren">${t.star ? '★' : '☆'}</button>
     <button class="chk" data-a="done" aria-label="Erledigt"></button>
     <div class="t" data-a="open"><span class="txt">${esc(t.title)}</span>${meta(t, o.date ? 'date' : '')}</div>
@@ -368,7 +390,7 @@ function viewHTML() {
   }
   if (V.name === 'projects') {
     const items = S.projects.map(p => `<button class="nav" data-go="project:${p.id}"><span class="dot" style="--c:${p.color}"></span>${esc(p.name)}<span class="n">${op.filter(t => t.project === p.id).length}</span></button>`).join('');
-    return { title: 'Projekte', sub: '', html: `<div class="card" style="padding:8px">${items}<button class="nav" data-a="newproject"><span class="ic">＋</span>Neues Projekt</button><button class="nav" data-go="upcoming"><span class="ic">▦</span>Geplant</button><button class="nav" data-go="done"><span class="ic">✓</span>Erledigt</button></div>`, cap: false };
+    return { title: 'Projekte', sub: '', html: `<div class="card" style="padding:8px">${items}<button class="nav" data-a="newproject"><span class="ic">＋</span>Neues Projekt</button><button class="nav" data-go="upcoming"><span class="ic">${ico('cal')}</span>Geplant</button><button class="nav" data-go="done"><span class="ic">${ico('check')}</span>Erledigt</button></div>`, cap: false };
   }
   if (V.name === 'project') {
     const p = proj(V.project), l = op.filter(t => t.project === p.id).sort(byDue);
@@ -392,20 +414,20 @@ function render() {
   if (V.filter && !S.projects.some(p => p.id === V.filter)) V.filter = null;
   const c = counts(), v = viewHTML();
   const navB = (name, ic, label, n, warn, extra = '') => `<button class="nav ${(V.name === name && !extra) ? 'on' : ''}" data-go="${name}"><span class="ic">${ic}</span>${label}${n ? `<span class="n ${warn ? 'warn' : ''}">${n}</span>` : ''}</button>`;
-  $('#side').innerHTML = `<div class="brand"><i>✓</i>Meine Aufgaben</div>
-    ${navB('today', '◉', 'Heute', c.today)}${navB('starred', '★', 'Markiert', c.starred)}${navB('upcoming', '▦', 'Geplant', c.upcoming)}${navB('done', '✓', 'Erledigt', 0)}
+  $('#side').innerHTML = `<div class="brand"><svg class="logo"><use href="#logo"/></svg>Meine Aufgaben</div>
+    ${navB('today', ico('today'), 'Heute', c.today)}${navB('starred', ico('star'), 'Markiert', c.starred)}${navB('upcoming', ico('cal'), 'Geplant', c.upcoming)}${navB('done', ico('check'), 'Erledigt', 0)}
     <div class="sep"><span>Projekte</span><button data-a="newproject" aria-label="Neues Projekt">＋</button></div>
     ${S.projects.map(p => `<button class="nav ${V.name === 'project' && V.project === p.id ? 'on' : ''}" data-go="project:${p.id}"><span class="dot" style="--c:${p.color}"></span>${esc(p.name)}<span class="n">${open().filter(t => t.project === p.id).length || ''}</span></button>`).join('')}
     <div class="sep"><span>Mehr</span></div>
-    <button class="nav" data-a="triage"><span class="ic">☀</span>Tagesplanung</button>
-    <button class="nav" data-a="settings"><span class="ic">⚙</span>Einstellungen</button>`;
+    <button class="nav" data-a="triage"><span class="ic">${ico('sun')}</span>Tagesplanung</button>
+    <button class="nav" data-a="settings"><span class="ic">${ico('gear')}</span>Einstellungen</button>`;
   const keepQ = ($('#qa') || {}).value || '', hadFocus = document.activeElement && document.activeElement.id === 'qa';
   $('#main').innerHTML = `<div class="head"><div><h1>${esc(v.title)}</h1>${v.sub ? `<div class="sub">${v.sub}</div>` : ''}</div>
-    <div class="tools">${v.filterable ? `<select class="pill fsel ${V.filter ? 'act' : ''}" id="fsel" aria-label="Projektfilter"><option value="">Alle Projekte</option>${S.projects.map(p => `<option value="${p.id}" ${V.filter === p.id ? 'selected' : ''}>${esc(p.name)}</option>`).join('')}</select>` : ''}<input class="search" id="sq" placeholder="Suchen …" value="${V.name === 'search' ? esc(V.q) : ''}">${S.settings.sync ? `<button class="pill" id="syncpill" data-a="sync" aria-label="Google-Abgleich">${SYNC_TXT[G.status] || ''}</button>` : ''}<button class="pill" data-a="settings" aria-label="Einstellungen">⚙</button></div></div>
+    <div class="tools">${v.filterable ? `<select class="pill fsel ${V.filter ? 'act' : ''}" id="fsel" aria-label="Projektfilter"><option value="">Alle Projekte</option>${S.projects.map(p => `<option value="${p.id}" ${V.filter === p.id ? 'selected' : ''}>${esc(p.name)}</option>`).join('')}</select>` : ''}<input class="search" id="sq" placeholder="Suchen …" value="${V.name === 'search' ? esc(V.q) : ''}">${S.settings.sync ? `<button class="pill" id="syncpill" data-a="sync" aria-label="Google-Abgleich">${SYNC_TXT[G.status] || ''}</button>` : ''}<button class="pill" data-a="settings" aria-label="Einstellungen">${ico('gear')}</button></div><svg class="logo" aria-label="Meine Aufgaben"><use href="#logo"/></svg></div>
     ${v.cap ? `<div class="capwrap desk">${capHTML('qa')}</div>` : ''}${v.html}`;
   if (v.cap && $('#qa')) { $('#qa').value = keepQ; updChips($('#qa')); if (hadFocus && !isMobile()) $('#qa').focus(); }
-  const tab = (name, ic, label, badge) => `<button class="${V.name === name || (name === 'projects' && V.name === 'project') ? 'on' : ''}" data-go="${name}"><b>${ic}</b>${label}${badge ? `<span class="badge">${badge}</span>` : ''}</button>`;
-  $('#tabs').innerHTML = tab('today', '◉', 'Heute', c.over) + tab('starred', '★', 'Markiert') + tab('upcoming', '▦', 'Geplant') + tab('projects', '☰', 'Projekte') + `<button data-a="settings"><b>⚙</b>Mehr</button>`;
+  const tab = (name, ic, label, badge) => `<button class="${V.name === name || (name === 'projects' && V.name === 'project') ? 'on' : ''}" data-go="${name}">${ic}${label}${badge ? `<span class="badge">${badge}</span>` : ''}</button>`;
+  $('#tabs').innerHTML = tab('today', ico('today'), 'Heute', c.over) + tab('starred', ico('star'), 'Markiert') + tab('upcoming', ico('cal'), 'Geplant') + tab('projects', ico('folder'), 'Projekte') + `<button data-a="settings">${ico('gear')}Mehr</button>`;
 }
 function updChips(input) {
   const box = input.closest('.capwrap, .sheet'); if (!box) return;
@@ -457,7 +479,7 @@ function deleteTask(id) {
   toast('Gelöscht', () => restore(snapBefore));
 }
 
-/* ---------- Wischen nach links zum Löschen (Touch) ---------- */
+/* ---------- Wischen (Touch): links löschen, rechts erledigen ---------- */
 (() => {
   let st = null;
   const main = document.getElementById('main');
@@ -469,18 +491,26 @@ function deleteTask(id) {
     if (!st) return;
     const t = e.touches[0], dx = t.clientX - st.x, dy = t.clientY - st.y;
     if (st.lock === null && (Math.abs(dx) > 10 || Math.abs(dy) > 10)) {
-      st.lock = (dx < 0 && Math.abs(dx) > Math.abs(dy) * 1.5) ? 'h' : 'v';
-      if (st.lock === 'h') { st.rw.classList.add('swiping'); st.row.style.transition = 'none'; }
+      st.lock = Math.abs(dx) > Math.abs(dy) * 1.5 ? (dx < 0 ? 'l' : 'r') : 'v';
+      if (st.lock !== 'v') { st.rw.classList.add(st.lock === 'l' ? 'swiping' : 'swiping-r'); st.row.style.transition = 'none'; }
     }
-    if (st.lock === 'h') { e.preventDefault(); st.dx = Math.min(0, dx); st.row.style.transform = `translateX(${st.dx}px)`; }
+    if (st.lock === 'l' || st.lock === 'r') {
+      e.preventDefault(); st.dx = st.lock === 'l' ? Math.min(0, dx) : Math.max(0, dx);
+      st.row.style.transform = `translateX(${st.dx}px)`;
+    }
   }, { passive: false });
   const end = cancel => {
     if (!st) return; const s = st; st = null;
-    if (s.lock !== 'h') return;
-    const id = s.row.dataset.id, del = !cancel && s.dx < -Math.min(110, s.w * 0.4);
+    if (s.lock !== 'l' && s.lock !== 'r') return;
+    const id = s.row.dataset.id, far = !cancel && Math.abs(s.dx) > Math.min(110, s.w * 0.4);
     s.row.style.transition = 'transform .2s ease';
-    if (del) { s.row.style.transform = `translateX(-${s.w + 20}px)`; setTimeout(() => deleteTask(id), 190); }
-    else { s.row.style.transform = ''; setTimeout(() => { s.rw.classList.remove('swiping'); s.row.style.transition = ''; }, 210); }
+    if (far) {
+      s.row.style.transform = `translateX(${s.lock === 'l' ? -(s.w + 20) : s.w + 20}px)`;
+      setTimeout(() => { if (s.lock === 'l') deleteTask(id); else { const t = taskById(id); if (t) setDone(t, !t.done); } }, 190);
+    } else {
+      s.row.style.transform = '';
+      setTimeout(() => { s.rw.classList.remove('swiping', 'swiping-r'); s.row.style.transition = ''; }, 210);
+    }
   };
   main.addEventListener('touchend', () => end(false));
   main.addEventListener('touchcancel', () => end(true));

@@ -74,6 +74,6 @@ Entwurf: [`entwurf/cockpit-entwurf.html`](entwurf/cockpit-entwurf.html) · Scree
 - Erinnerungen zur Uhrzeit (solange die App geöffnet ist), Sicherung/Wiederherstellung als Datei
 - Handy: Tab-Leiste, großer Plus-Knopf, Eingabe als Bottom-Sheet
 
-**Release 2 – Abgleich PC ↔ Handy über das Google-Konto** (Entscheidung offen, siehe Chat)
+**Release 2 – Abgleich PC ↔ Handy (Code fertig, wartet auf Google-Einrichtung):** Daten liegen im privaten App-Speicher von Google Drive; Änderungen und Löschungen werden zusammengeführt. Projekt-Filter in Heute/Markiert/Geplant. Anleitung: [`EINRICHTUNG.md`](EINRICHTUNG.md)
 
-**Release 3 – Optionen:** Erinnerungen auch bei geschlossener App über den Google Kalender; Import der bestehenden Google-Tasks-Listen
+**Release 3 – folgt nach dem ersten Praxistest:** Erinnerungen auch bei geschlossener App über Mini-Termine im Google Kalender; einmaliger Import der Google-Tasks-Listen „Eingang“ und „Aufmaß-Tool“

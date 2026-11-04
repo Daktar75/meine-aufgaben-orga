@@ -40,6 +40,8 @@ h1{font-size:28px;margin:0;font-weight:700;letter-spacing:-.02em}
 .tools{display:flex;gap:8px;align-items:center}
 .pill{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:12px;background:var(--card);border:1px solid var(--line);font-size:13px;color:var(--text)}
 .pill:hover{background:var(--card2)}
+.fsel{appearance:none;-webkit-appearance:none;color-scheme:dark;max-width:160px;padding-right:30px;outline:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23a39cc9' stroke-width='2'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center}
+.fsel.act{background-color:rgba(139,92,246,.3);border-color:var(--accent)}
 .search{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:8px 14px;width:170px;outline:none;font-size:13px}
 .search:focus{border-color:var(--accent)}
 .capwrap{margin-bottom:18px}
@@ -201,7 +203,31 @@ function load() {
   return fresh();
 }
 let S = load();
-function save() { if (DEMO) return; try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+S.deleted = S.deleted || {};
+const G = { tok: null, exp: 0, fileId: null, status: 'off', busy: false, again: false, timer: null, lastTap: 0 };
+
+/* Änderungen erkennen: jede geänderte Aufgabe bekommt einen Zeitstempel (upd), gelöschte einen Grabstein */
+const hashes = new Map();
+const hashOf = o => { const { upd, notified, ...r } = o; return JSON.stringify(r); };
+function seedHashes() {
+  hashes.clear();
+  S.tasks.forEach(t => { t.upd = t.upd || t.created || 1; hashes.set('t:' + t.id, hashOf(t)); });
+  S.projects.forEach(p => { p.upd = p.upd || 1; hashes.set('p:' + p.id, hashOf(p)); });
+}
+function track() {
+  const now = Date.now(), seen = new Set(); S.deleted = S.deleted || {};
+  const visit = (list, pre) => list.forEach(o => { const k = pre + o.id, h = hashOf(o); seen.add(k); if (hashes.get(k) !== h) { o.upd = now; hashes.set(k, hashOf(o)); delete S.deleted[k]; } });
+  visit(S.tasks, 't:'); visit(S.projects, 'p:');
+  for (const k of [...hashes.keys()]) if (!seen.has(k)) { hashes.delete(k); S.deleted[k] = now; }
+  for (const k of Object.keys(S.deleted)) if (now - S.deleted[k] > 90 * 864e5) delete S.deleted[k];
+}
+function save() {
+  if (DEMO) return;
+  track();
+  try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {}
+  if (S.settings.sync) { clearTimeout(G.timer); G.timer = setTimeout(() => sync(false), 2500); }
+}
+seedHashes();
 const proj = id => S.projects.find(p => p.id === id) || S.projects[0];
 const taskById = id => S.tasks.find(t => t.id === id);
 let V = { name: 'today', project: null, q: '' };
@@ -295,31 +321,32 @@ const group = (title, list, cls = '', o = {}) => list.length ? `<div class="gh $
 
 /* ---------- Ansichten ---------- */
 function viewHTML() {
-  const td = today(), op = open();
+  const FV = ['today', 'starred', 'upcoming'].includes(V.name), fp = t => !FV || !V.filter || t.project === V.filter;
+  const td = today(), op = open().filter(fp);
   if (V.name === 'today') {
     const over = op.filter(isOver).sort(byDue);
     const todayT = op.filter(t => t.due === td);
     const top = todayT.filter(t => t.star).sort(byDue), rest = todayT.filter(t => !t.star).sort(byDue);
-    const doneT = S.tasks.filter(t => t.done && t.doneAt && ymd(new Date(t.doneAt)) === td);
+    const doneT = S.tasks.filter(t => t.done && t.doneAt && ymd(new Date(t.doneAt)) === td).filter(fp);
     const total = over.length + todayT.length + doneT.length, pct = total ? Math.round(doneT.length / total * 100) : 0;
-    const stats = `<div class="stats"><div class="stat"><b>${todayT.length + over.length}</b><span>Offen für heute</span></div><div class="stat"><b style="color:var(--red)">${over.length}</b><span>Liegen geblieben</span></div><div class="stat"><b style="color:var(--amber)">${S.tasks.filter(t => !t.done && t.star).length}</b><span>Markiert</span></div><div class="stat"><b style="color:var(--green)">${doneT.length}</b><span>Erledigt heute</span></div></div><div class="bar"><i style="width:${pct}%"></i></div>`;
+    const stats = `<div class="stats"><div class="stat"><b>${todayT.length + over.length}</b><span>Offen für heute</span></div><div class="stat"><b style="color:var(--red)">${over.length}</b><span>Liegen geblieben</span></div><div class="stat"><b style="color:var(--amber)">${op.filter(t => t.star).length}</b><span>Markiert</span></div><div class="stat"><b style="color:var(--green)">${doneT.length}</b><span>Erledigt heute</span></div></div><div class="bar"><i style="width:${pct}%"></i></div>`;
     let body = group('⚠ Liegen geblieben', over, 'late');
     body += group('★ Top heute', top, 'top', { top: true, count: `${top.length} / 3` });
     body += group(top.length ? 'Wenn Zeit bleibt' : 'Heute', rest);
     body += group('Erledigt heute', doneT);
     const hint = top.length > 3 ? '<div class="hint">Mehr als 3 Top-Aufgaben: Was kann auf morgen?</div>' : '';
     if (!over.length && !todayT.length && !doneT.length) body = '<div class="empty"><b>Nichts für heute</b>Erfasse oben eine Aufgabe oder schau in den Eingang.</div>';
-    return { title: 'Heute', sub: new Date().toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long' }), html: stats + hint + `<div class="card">${body}</div>`, cap: true };
+    return { title: 'Heute', sub: new Date().toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long' }) + (V.filter ? ' · nur ' + esc(proj(V.filter).name) : ''), html: stats + hint + `<div class="card">${body}</div>`, cap: true, filterable: true };
   }
   if (V.name === 'starred') {
     const l = op.filter(t => t.star).sort(byDue);
-    return { title: 'Markiert', sub: 'Deine wichtigsten Aufgaben, über alle Projekte', html: `<div class="card">${l.length ? l.map(t => row(t, { date: true })).join('') : '<div class="empty"><b>Noch nichts markiert</b>Tippe den Stern an einer Aufgabe.</div>'}</div>`, cap: true };
+    return { title: 'Markiert', sub: 'Deine wichtigsten Aufgaben, über alle Projekte', html: `<div class="card">${l.length ? l.map(t => row(t, { date: true })).join('') : '<div class="empty"><b>Noch nichts markiert</b>Tippe den Stern an einer Aufgabe.</div>'}</div>`, cap: true, filterable: true };
   }
   if (V.name === 'upcoming') {
     const l = op.filter(t => t.due && t.due > td).sort(byDue), g = {};
     l.forEach(t => { const k = diff(t.due, td) < 7 ? t.due : 'later'; (g[k] = g[k] || []).push(t); });
     let body = Object.keys(g).sort().map(k => group(k === 'later' ? 'Später' : `${dueLabel({ due: k }, true)} · ${short(k)}`, g[k], '', { date: false })).join('');
-    return { title: 'Geplant', sub: 'Was in den nächsten Tagen ansteht', html: `<div class="card">${body || '<div class="empty"><b>Nichts geplant</b></div>'}</div>`, cap: true };
+    return { title: 'Geplant', sub: 'Was in den nächsten Tagen ansteht', html: `<div class="card">${body || '<div class="empty"><b>Nichts geplant</b></div>'}</div>`, cap: true, filterable: true };
   }
   if (V.name === 'done') {
     const l = S.tasks.filter(t => t.done).sort((a, b) => (b.doneAt || 0) - (a.doneAt || 0)).slice(0, 60);
@@ -350,7 +377,9 @@ function counts() {
 function capHTML(id) {
   return `<form class="cap" data-cap><span class="plus">＋</span><input id="${id}" autocomplete="off" enterkeyhint="done" placeholder="Neue Aufgabe, z. B. Angebot schicken #KundeB morgen 15:00 *"><button class="go" type="submit">Hinzufügen</button></form><div class="chips" data-chips></div>`;
 }
+const SYNC_TXT = { ok: '☁ ✓', busy: '☁ …', auth: '☁ tippen', err: '☁ ✕', off: '' };
 function render() {
+  if (V.filter && !S.projects.some(p => p.id === V.filter)) V.filter = null;
   const c = counts(), v = viewHTML();
   const navB = (name, ic, label, n, warn, extra = '') => `<button class="nav ${(V.name === name && !extra) ? 'on' : ''}" data-go="${name}"><span class="ic">${ic}</span>${label}${n ? `<span class="n ${warn ? 'warn' : ''}">${n}</span>` : ''}</button>`;
   $('#side').innerHTML = `<div class="brand"><i>✓</i>Meine Aufgaben</div>
@@ -362,7 +391,7 @@ function render() {
     <button class="nav" data-a="settings"><span class="ic">⚙</span>Einstellungen</button>`;
   const keepQ = ($('#qa') || {}).value || '', hadFocus = document.activeElement && document.activeElement.id === 'qa';
   $('#main').innerHTML = `<div class="head"><div><h1>${esc(v.title)}</h1>${v.sub ? `<div class="sub">${v.sub}</div>` : ''}</div>
-    <div class="tools"><input class="search" id="sq" placeholder="Suchen …" value="${V.name === 'search' ? esc(V.q) : ''}"><button class="pill" data-a="settings" aria-label="Einstellungen">⚙</button></div></div>
+    <div class="tools">${v.filterable ? `<select class="pill fsel ${V.filter ? 'act' : ''}" id="fsel" aria-label="Projektfilter"><option value="">Alle Projekte</option>${S.projects.map(p => `<option value="${p.id}" ${V.filter === p.id ? 'selected' : ''}>${esc(p.name)}</option>`).join('')}</select>` : ''}<input class="search" id="sq" placeholder="Suchen …" value="${V.name === 'search' ? esc(V.q) : ''}">${S.settings.sync ? `<button class="pill" id="syncpill" data-a="sync" aria-label="Google-Abgleich">${SYNC_TXT[G.status] || ''}</button>` : ''}<button class="pill" data-a="settings" aria-label="Einstellungen">⚙</button></div></div>
     ${v.cap ? `<div class="capwrap desk">${capHTML('qa')}</div>` : ''}${v.html}`;
   if (v.cap && $('#qa')) { $('#qa').value = keepQ; updChips($('#qa')); if (hadFocus && !isMobile()) $('#qa').focus(); }
   const tab = (name, ic, label, badge) => `<button class="${V.name === name || (name === 'projects' && V.name === 'project') ? 'on' : ''}" data-go="${name}"><b>${ic}</b>${label}${badge ? `<span class="badge">${badge}</span>` : ''}</button>`;
@@ -404,7 +433,7 @@ function addTask(text, ctx) {
   const o = parseQuick(text); if (!o.title) return false;
   let pid = o.project;
   if (!pid && o.newProject) { const p = { id: uid(), name: o.newProject.replace(/[_-]+/g, ' '), color: COLORS[S.projects.length % COLORS.length] }; S.projects.push(p); pid = p.id; }
-  if (!pid) pid = V.name === 'project' ? V.project : 'inbox';
+  if (!pid) pid = V.name === 'project' ? V.project : (['today', 'starred', 'upcoming'].includes(V.name) && V.filter) || 'inbox';
   let due = o.due; if (!due && V.name === 'today') due = today();
   const t = { id: uid(), title: o.title, notes: '', project: pid, due, time: o.time, star: o.star || V.name === 'starred', done: false, doneAt: null, created: Date.now(), repeat: o.repeat, notified: false };
   const snap = snapshot(); S.tasks.push(t); save(); render();
@@ -447,7 +476,10 @@ function settings() {
     ${S.projects.map(p => `<div class="hrow"><span><span class="dot" style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${p.color};margin-right:8px"></span>${esc(p.name)}</span>${p.fixed ? '<small>fest</small>' : `<span class="acts" style="opacity:1"><button data-pa="rename:${p.id}">Umbenennen</button><button data-pa="delete:${p.id}">Löschen</button></span>`}</div>`).join('')}
     <div class="gh"><span>Daten (nur auf diesem Gerät)</span></div>
     <div class="srow"><button data-sa="export">Sichern</button><button data-sa="import">Einlesen</button></div>
-    <div class="hrow"><small>Google-Abgleich zwischen PC und Handy folgt im nächsten Schritt.</small></div>
+    <div class="gh"><span>Google-Abgleich (PC ↔ Handy)</span></div>
+    ${!cid() ? `<label class="field"><span>Client-ID aus der Google-Einrichtung (siehe EINRICHTUNG.md)</span><input data-gid placeholder="1234-abc.apps.googleusercontent.com"></label><div class="srow"><button data-sa="gsave">Speichern</button></div>`
+      : S.settings.sync ? `<div class="hrow"><span>Verbunden<small>${syncText()}</small></span></div><div class="srow"><button data-sa="gsync">Jetzt abgleichen</button><button data-sa="gdisc">Trennen</button></div>`
+      : `<div class="srow"><button class="pri" data-sa="gconn">Mit Google verbinden</button></div>`}
     <div class="srow"><button class="pri" data-sa="close">Fertig</button></div>`);
 }
 function newProject() {
@@ -458,11 +490,15 @@ function newProject() {
 /* ---------- Ereignisse ---------- */
 document.addEventListener('click', e => {
   const go = e.target.closest('[data-go]');
-  if (go) { const [n, p] = go.dataset.go.split(':'); V = { name: n, project: p || null, q: '' }; render(); window.scrollTo(0, 0); return; }
+  if (go) { const [n, p] = go.dataset.go.split(':'); V = { name: n, project: p || null, q: '', filter: V.filter }; render(); window.scrollTo(0, 0); return; }
   const sa = e.target.closest('[data-sa]');
   if (sa) {
     const a = sa.dataset.sa, id = $('#overlay').dataset.id;
     if (a === 'close' || a === 'triagedone') closeSheet();
+    if (a === 'gsave') { const v = (document.querySelector('[data-gid]').value || '').trim(); if (v) { lsSet('aufgaben.gclient', v); loadGis().catch(() => {}); settings(); } }
+    if (a === 'gconn') { S.settings.sync = true; save(); G.status = 'busy'; sync(true).then(() => { if ($('#overlay').classList.contains('on')) settings(); render(); }); }
+    if (a === 'gsync') { sync(true).then(() => { if ($('#overlay').classList.contains('on')) settings(); }); }
+    if (a === 'gdisc') { S.settings.sync = false; G.tok = null; G.fileId = null; lsSet('aufgaben.gtok', ''); setStatus('off'); save(); settings(); }
     if (a === 'delete') { const snap = snapshot(); S.tasks = S.tasks.filter(t => t.id !== id); save(); closeSheet(); toast('Gelöscht', () => restore(snap)); }
     if (a === 'export') { const b = new Blob([JSON.stringify(S, null, 1)], { type: 'application/json' }), u = URL.createObjectURL(b), l = document.createElement('a'); l.href = u; l.download = `aufgaben-${today()}.json`; l.click(); setTimeout(() => URL.revokeObjectURL(u), 1000); }
     if (a === 'import') { const i = document.createElement('input'); i.type = 'file'; i.accept = '.json'; i.onchange = () => { const f = i.files[0]; if (!f) return; f.text().then(x => { try { const d = JSON.parse(x); if (!d.tasks || !d.projects) throw 0; if (confirm('Aktuelle Daten durch diese Sicherung ersetzen?')) { S = d; S.settings = { ...fresh().settings, ...S.settings }; save(); closeSheet(); } } catch (err) { alert('Datei nicht lesbar.'); } }); }; i.click(); }
@@ -478,6 +514,7 @@ document.addEventListener('click', e => {
   if (e.target.id === 'overlay') { closeSheet(); return; }
   const a = e.target.closest('[data-a]'); if (!a) return;
   const act = a.dataset.a, rowEl = a.closest('[data-id]'), t = rowEl && taskById(rowEl.dataset.id);
+  if (act === 'sync') return sync(true);
   if (act === 'newproject') return newProject();
   if (act === 'settings') return settings();
   if (act === 'triage') return triage();
@@ -497,6 +534,7 @@ document.addEventListener('input', e => {
   const f = e.target.dataset.f; if (f) { const t = taskById($('#overlay').dataset.id); if (!t) return; let v = e.target.value; if (f === 'due' || f === 'time') v = v || null; if (f === 'repeat') v = v || null; if (f === 'title' && !v.trim()) return; t[f] = v; if (f === 'due' || f === 'time') t.notified = false; save(); }
 });
 document.addEventListener('change', e => {
+  if (e.target.id === 'fsel') { V.filter = e.target.value || null; render(); return; }
   const s = e.target.dataset.s;
   if (s) { if (s === 'notify') { S.settings.notify = e.target.value === '1'; if (S.settings.notify && 'Notification' in window && Notification.permission === 'default') Notification.requestPermission().then(settings); } if (s === 'lead') S.settings.lead = +e.target.value; if (s === 'triage') S.settings.triage = e.target.value === '1'; save(); }
 });
@@ -531,12 +569,108 @@ function checkReminders() {
 setInterval(checkReminders, 30000);
 document.addEventListener('visibilitychange', () => { if (!document.hidden) { render(); checkReminders(); } });
 
+/* ---------- Google-Abgleich (privater App-Speicher in Google Drive) ---------- */
+const GOOGLE_CLIENT_ID = '';   // wird nach der Google-Einrichtung hier eingetragen (oder in den Einstellungen)
+const SCOPE = 'https://www.googleapis.com/auth/drive.appdata';
+const lsGet = k => { try { return localStorage.getItem(k) || ''; } catch (e) { return ''; } };
+const lsSet = (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} };
+const cid = () => GOOGLE_CLIENT_ID || lsGet('aufgaben.gclient');
+const hasGis = () => !!(window.google && google.accounts && google.accounts.oauth2);
+function loadGis() {
+  return new Promise((res, rej) => {
+    if (hasGis()) return res();
+    const s = document.createElement('script'); s.src = 'https://accounts.google.com/gsi/client'; s.async = true;
+    s.onload = res; s.onerror = () => rej(new Error('gis')); document.head.appendChild(s);
+  });
+}
+function setStatus(s) { G.status = s; const b = $('#syncpill'); if (b) b.textContent = SYNC_TXT[s] || ''; }
+function requestToken(interactive) {
+  return new Promise(resolve => {
+    let done = false; const fin = v => { if (!done) { done = true; resolve(v); } };
+    setTimeout(() => fin(null), 25000);
+    const c = google.accounts.oauth2.initTokenClient({
+      client_id: cid(), scope: SCOPE, prompt: interactive ? '' : 'none',
+      callback: r => { if (r && r.access_token) { G.tok = r.access_token; G.exp = Date.now() + (r.expires_in || 3600) * 1000; lsSet('aufgaben.gtok', JSON.stringify({ t: G.tok, e: G.exp })); fin(G.tok); } else fin(null); },
+      error_callback: () => fin(null)
+    });
+    c.requestAccessToken();
+  });
+}
+// Wichtig: bei interaktiver Anmeldung kein await vor requestAccessToken (sonst blockt der Browser das Fenster)
+function getToken(interactive) {
+  if (G.tok && Date.now() < G.exp - 60000) return Promise.resolve(G.tok);
+  if (!cid()) return Promise.resolve(null);
+  if (hasGis()) return requestToken(interactive);
+  return loadGis().then(() => requestToken(interactive)).catch(() => null);
+}
+async function dfetch(url, opt = {}, raw) {
+  const r = await fetch(url, { ...opt, headers: { Authorization: 'Bearer ' + G.tok, ...(opt.headers || {}) } });
+  if (r.status === 401) { G.tok = null; lsSet('aufgaben.gtok', ''); const e = new Error('401'); e.code = 401; throw e; }
+  if (!r.ok) throw new Error('drive ' + r.status);
+  if (raw) return r;
+  const txt = await r.text(); try { return txt ? JSON.parse(txt) : null; } catch (e) { return null; }
+}
+const snap = () => ({ v: 1, projects: S.projects, tasks: S.tasks, deleted: S.deleted || {} });
+function mergeData(a, b) {
+  const del = { ...(a.deleted || {}) };
+  for (const [k, v] of Object.entries(b.deleted || {})) del[k] = Math.max(del[k] || 0, v);
+  const mergeList = (x, y, pre) => {
+    const m = new Map();
+    [...(x || []), ...(y || [])].forEach(i => { const o = m.get(i.id); if (!o || (i.upd || 0) > (o.upd || 0)) m.set(i.id, i); });
+    return [...m.values()].filter(i => !(del[pre + i.id] && del[pre + i.id] >= (i.upd || 0)));
+  };
+  const projects = mergeList(a.projects, b.projects, 'p:');
+  if (!projects.some(p => p.id === 'inbox')) projects.unshift({ id: 'inbox', name: 'Eingang', color: '#fbbf24', fixed: true, upd: 1 });
+  const ids = new Set(projects.map(p => p.id)), tasks = mergeList(a.tasks, b.tasks, 't:');
+  tasks.forEach(t => { if (!ids.has(t.project)) t.project = 'inbox'; });
+  return { v: 1, projects, tasks, deleted: del };
+}
+function applyData(d) {
+  S.projects = d.projects; S.tasks = d.tasks; S.deleted = d.deleted;
+  seedHashes();
+  try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {}
+  if (!$('#overlay').classList.contains('on')) render();
+}
+async function sync(interactive) {
+  if (DEMO || !S.settings.sync || !cid()) return;
+  if (G.busy) { G.again = true; return; }
+  if (G.status === 'auth' && !interactive && !(G.tok && Date.now() < G.exp - 60000)) return;
+  G.busy = true; setStatus('busy');
+  try {
+    const tok = await getToken(interactive);
+    if (!tok) { setStatus('auth'); return; }
+    if (!G.fileId) { const r = await dfetch(`https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&q=${encodeURIComponent("name='aufgaben.json'")}&fields=files(id)`); G.fileId = (r && r.files && r.files[0] || {}).id || null; }
+    const remote = G.fileId ? await dfetch(`https://www.googleapis.com/drive/v3/files/${G.fileId}?alt=media`) : null;
+    if (remote && remote.tasks && remote.projects) applyData(mergeData(snap(), remote));
+    const body = JSON.stringify(snap());
+    if (!G.fileId) {
+      const b = 'aufg' + uid();
+      const mp = `--${b}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify({ name: 'aufgaben.json', parents: ['appDataFolder'] })}\r\n--${b}\r\nContent-Type: application/json\r\n\r\n${body}\r\n--${b}--`;
+      const r = await dfetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id', { method: 'POST', headers: { 'Content-Type': 'multipart/related; boundary=' + b }, body: mp });
+      G.fileId = r && r.id;
+    } else {
+      await dfetch(`https://www.googleapis.com/upload/drive/v3/files/${G.fileId}?uploadType=media`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body });
+    }
+    setStatus('ok');
+  } catch (e) { setStatus(e.code === 401 ? 'auth' : 'err'); }
+  finally { G.busy = false; if (G.again) { G.again = false; setTimeout(() => sync(false), 500); } }
+}
+function syncText() { return ({ ok: 'abgeglichen', busy: 'gleicht ab …', auth: 'Anmeldung nötig (einmal tippen)', err: 'Fehler beim Abgleich', off: '' })[G.status] || ''; }
+if (cid()) loadGis().catch(() => {});
+setInterval(() => { if (!document.hidden) sync(false); }, 120000);
+document.addEventListener('pointerdown', () => {
+  if (G.status === 'auth' && !G.busy && S.settings.sync && Date.now() - G.lastTap > 600000) { G.lastTap = Date.now(); sync(true); }
+});
+
 /* ---------- Start ---------- */
 if ('serviceWorker' in navigator && !DEMO && location.protocol !== 'file:') navigator.serviceWorker.register('sw.js').catch(() => {});
+try { const tk = JSON.parse(lsGet('aufgaben.gtok') || 'null'); if (tk && tk.e > Date.now() + 60000) { G.tok = tk.t; G.exp = tk.e; } } catch (e) {}
+if (S.settings.sync && !DEMO) G.status = G.tok ? 'busy' : 'auth';
 render(); checkReminders();
+if (S.settings.sync && !DEMO) sync(false);
 if (params.has('triage') || (!DEMO && S.settings.triage && S.lastTriage !== today() && (open().some(isOver)))) setTimeout(triage, 300);
 else if (!DEMO && S.lastTriage !== today()) { S.lastTriage = today(); save(); }
-window.__app = { get S() { return S; }, parseQuick, addTask, render };
+window.__app = { get S() { return S; }, get V() { return V; }, parseQuick, addTask, render, sync, mergeData };
 })();
 </script>
 </body>

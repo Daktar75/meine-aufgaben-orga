@@ -62,7 +62,12 @@ h1{font-size:28px;margin:0;font-weight:700;letter-spacing:-.02em}
 .card{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:6px 14px 10px;margin-bottom:16px;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
 .gh{display:flex;justify-content:space-between;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);padding:14px 4px 8px}
 .gh.late{color:var(--red)}.gh.top{color:var(--amber)}
-.row{display:flex;align-items:center;gap:12px;padding:11px 10px;border-radius:14px;margin-top:4px;border:1px solid transparent;transition:background .15s}
+.rw{position:relative;margin-top:4px;border-radius:14px;overflow:hidden}
+.del-bg{position:absolute;inset:0;display:none;align-items:center;justify-content:flex-end;padding-right:24px;font-weight:700;font-size:14px;color:#fff;background:linear-gradient(90deg,rgba(220,38,38,.15),#dc2626)}
+.rw.swiping .del-bg{display:flex}
+.rw.swiping .row{background:#1d1736!important;touch-action:pan-y}
+.row{display:flex;align-items:center;gap:12px;padding:11px 10px;border-radius:14px;border:1px solid transparent;transition:background .15s}
+.acts .xdel{color:var(--red)}
 .row:hover{background:rgba(255,255,255,.04)}
 .row.over{background:rgba(248,113,113,.08);border-color:rgba(248,113,113,.28)}
 .row.top{background:linear-gradient(90deg,rgba(139,92,246,.24),rgba(99,102,241,.08));border-color:rgba(139,92,246,.4)}
@@ -126,6 +131,7 @@ h1{font-size:28px;margin:0;font-weight:700;letter-spacing:-.02em}
  .capwrap.desk,.search,.tools .hide-m{display:none}
  .acts{opacity:1}
  .row:not(.over) .acts{display:none}
+ .acts .xdel{display:none}
  .card{padding:4px 8px 8px;border-radius:20px}
  .fab{display:grid;position:fixed;right:18px;bottom:calc(76px + var(--safe-b));width:58px;height:58px;border-radius:19px;background:linear-gradient(135deg,var(--accent),var(--accent2));font-size:32px;place-items:center;box-shadow:0 10px 30px rgba(139,92,246,.55);z-index:40;color:#fff}
  .tabs{display:flex;position:fixed;left:0;right:0;bottom:0;padding:8px 8px calc(8px + var(--safe-b));background:rgba(20,13,45,.88);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-top:1px solid var(--line);z-index:30}
@@ -309,13 +315,13 @@ function meta(t, mode) {
 }
 function row(t, o = {}) {
   const p = proj(t.project), over = isOver(t), td = today();
-  const acts = t.done ? '' : `<div class="acts">${t.due !== td ? '<button data-a="today">Heute</button>' : ''}${t.due !== addDays(td, 1) ? '<button data-a="tomorrow">Morgen</button>' : ''}</div>`;
-  return `<div class="row ${over ? 'over' : ''} ${o.top ? 'top' : ''} ${t.done ? 'done' : ''}" data-id="${t.id}">
+  const acts = t.done ? '' : `<div class="acts">${t.due !== td ? '<button data-a="today">Heute</button>' : ''}${t.due !== addDays(td, 1) ? '<button data-a="tomorrow">Morgen</button>' : ''}<button class="xdel" data-a="del2" aria-label="Löschen">✕</button></div>`;
+  return `<div class="rw"><div class="del-bg">Löschen</div><div class="row ${over ? 'over' : ''} ${o.top ? 'top' : ''} ${t.done ? 'done' : ''}" data-id="${t.id}">
     <button class="star ${t.star ? 'on' : ''}" data-a="star" aria-label="Markieren">${t.star ? '★' : '☆'}</button>
     <button class="chk" data-a="done" aria-label="Erledigt"></button>
     <div class="t" data-a="open"><span class="txt">${esc(t.title)}</span>${meta(t, o.date ? 'date' : '')}</div>
     ${acts}${o.noTag ? '' : `<span class="tag" style="--c:${p.color}">${esc(p.name)}</span>`}
-  </div>`;
+  </div></div>`;
 }
 const group = (title, list, cls = '', o = {}) => list.length ? `<div class="gh ${cls}"><span>${title}</span><span>${o.count || list.length}</span></div>${list.map(t => row(t, o)).join('')}` : '';
 
@@ -441,6 +447,41 @@ function addTask(text, ctx) {
   return true;
 }
 
+function deleteTask(id) {
+  if (!taskById(id)) return;
+  const snapBefore = snapshot(); S.tasks = S.tasks.filter(x => x.id !== id); save(); render();
+  toast('Gelöscht', () => restore(snapBefore));
+}
+
+/* ---------- Wischen nach links zum Löschen (Touch) ---------- */
+(() => {
+  let st = null;
+  const main = document.getElementById('main');
+  main.addEventListener('touchstart', e => {
+    const rw = e.target.closest('.rw'); if (!rw || e.touches.length !== 1) return;
+    const t = e.touches[0]; st = { rw, row: rw.querySelector('.row'), x: t.clientX, y: t.clientY, dx: 0, lock: null, w: rw.offsetWidth };
+  }, { passive: true });
+  main.addEventListener('touchmove', e => {
+    if (!st) return;
+    const t = e.touches[0], dx = t.clientX - st.x, dy = t.clientY - st.y;
+    if (st.lock === null && (Math.abs(dx) > 10 || Math.abs(dy) > 10)) {
+      st.lock = (dx < 0 && Math.abs(dx) > Math.abs(dy) * 1.5) ? 'h' : 'v';
+      if (st.lock === 'h') { st.rw.classList.add('swiping'); st.row.style.transition = 'none'; }
+    }
+    if (st.lock === 'h') { e.preventDefault(); st.dx = Math.min(0, dx); st.row.style.transform = `translateX(${st.dx}px)`; }
+  }, { passive: false });
+  const end = cancel => {
+    if (!st) return; const s = st; st = null;
+    if (s.lock !== 'h') return;
+    const id = s.row.dataset.id, del = !cancel && s.dx < -Math.min(110, s.w * 0.4);
+    s.row.style.transition = 'transform .2s ease';
+    if (del) { s.row.style.transform = `translateX(-${s.w + 20}px)`; setTimeout(() => deleteTask(id), 190); }
+    else { s.row.style.transform = ''; setTimeout(() => { s.rw.classList.remove('swiping'); s.row.style.transition = ''; }, 210); }
+  };
+  main.addEventListener('touchend', () => end(false));
+  main.addEventListener('touchcancel', () => end(true));
+})();
+
 /* ---------- Overlay / Sheets ---------- */
 function showSheet(html) { const o = $('#overlay'); o.innerHTML = `<div class="sheet">${html}</div>`; o.classList.add('on'); }
 function closeSheet() { $('#overlay').classList.remove('on'); $('#overlay').innerHTML = ''; render(); }
@@ -517,6 +558,7 @@ document.addEventListener('click', e => {
   const a = e.target.closest('[data-a]'); if (!a) return;
   const act = a.dataset.a, rowEl = a.closest('[data-id]'), t = rowEl && taskById(rowEl.dataset.id);
   if (act === 'sync') return sync(true);
+  if (act === 'del2') return deleteTask(rowEl && rowEl.dataset.id);
   if (act === 'newproject') return newProject();
   if (act === 'settings') return settings();
   if (act === 'triage') return triage();

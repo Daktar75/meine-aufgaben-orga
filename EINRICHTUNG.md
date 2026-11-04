@@ -47,3 +47,13 @@ Das erlaubt der App, eine einzige Datei in einem privaten Bereich deines Google 
 
 - Oben rechts zeigt **☁ tippen**: Die Anmeldung ist abgelaufen (nach etwa einer Stunde). Einmal irgendwo tippen oder das Wolken-Symbol antippen, dann läuft der Abgleich weiter.
 - Fehler „redirect_uri_mismatch“ oder „origin_mismatch“: Die Adresse unter „Autorisierte JavaScript-Quellen“ stimmt nicht. Sie muss genau `https://daktar75.github.io` lauten.
+
+## Optional: Aufgaben aus Google Tasks übernehmen
+
+Einmalig, nur lesend. Google Tasks bleibt unverändert.
+
+1. Google Cloud, Projekt „Aufgaben“: **APIs & Dienste → Bibliothek → Google Tasks API → Aktivieren**.
+2. **Google Auth Platform → Datenzugriff → Bereiche hinzufügen oder entfernen**: bei „Bereiche manuell hinzufügen“ `https://www.googleapis.com/auth/tasks.readonly` einfügen, zur Tabelle hinzufügen, aktualisieren, speichern.
+3. App: **⚙ Einstellungen → Aus Google Tasks übernehmen → Jetzt importieren**. Google fragt nach der Zustimmung (wie beim ersten Verbinden: Erweitert → Weiter).
+
+Jede Google-Liste wird ein Projekt. Die Listen „Eingang“ und „Meine Aufgaben“ landen im Eingang. Erledigte Aufgaben werden nicht übernommen. Datum bleibt erhalten, Uhrzeiten und Sterne gibt Google nicht heraus.

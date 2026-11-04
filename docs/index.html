@@ -90,6 +90,8 @@ h1{font-size:28px;margin:0;font-weight:700;letter-spacing:-.02em}
 .empty{text-align:center;color:var(--muted);padding:44px 10px}
 .empty b{display:block;font-size:18px;color:var(--text);margin-bottom:4px}
 .hint{font-size:13px;color:var(--amber);padding:6px 4px 2px}
+.inbox-hint{display:flex;justify-content:space-between;align-items:center;gap:12px;width:100%;margin-bottom:14px;padding:12px 16px;border-radius:16px;background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.35);text-align:left}
+.inbox-hint span{color:var(--amber);font-weight:600;font-size:13px;white-space:nowrap}
 .fab,.tabs{display:none}
 #overlay{position:fixed;inset:0;background:rgba(5,3,16,.6);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);display:none;z-index:50;align-items:center;justify-content:center;padding:16px}
 #overlay.on{display:flex}
@@ -340,9 +342,11 @@ function viewHTML() {
     body += group('★ Top heute', top, 'top', { top: true, count: `${top.length} / 3` });
     body += group(top.length ? 'Wenn Zeit bleibt' : 'Heute', rest);
     body += group('Erledigt heute', doneT);
+    const inb = S.tasks.filter(t => !t.done && t.project === 'inbox' && !t.due).length;
+    const inboxHint = inb && (!V.filter || V.filter === 'inbox') ? `<button class="inbox-hint" data-a="triage"><b>${inb} im Eingang ohne Datum</b><span>Jetzt sortieren ›</span></button>` : '';
     const hint = top.length > 3 ? '<div class="hint">Mehr als 3 Top-Aufgaben: Was kann auf morgen?</div>' : '';
-    if (!over.length && !todayT.length && !doneT.length) body = '<div class="empty"><b>Nichts für heute</b>Erfasse oben eine Aufgabe oder schau in den Eingang.</div>';
-    return { title: 'Heute', sub: new Date().toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long' }) + (V.filter ? ' · nur ' + esc(proj(V.filter).name) : ''), html: stats + hint + `<div class="card">${body}</div>`, cap: true, filterable: true };
+    if (!over.length && !todayT.length && !doneT.length) body = '<div class="empty"><b>Nichts für heute</b>Lege mit „+“ eine Aufgabe an oder schau in den Eingang.</div>';
+    return { title: 'Heute', sub: new Date().toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long' }) + (V.filter ? ' · nur ' + esc(proj(V.filter).name) : ''), html: inboxHint + stats + hint + `<div class="card">${body}</div>`, cap: true, filterable: true };
   }
   if (V.name === 'starred') {
     const l = op.filter(t => t.star).sort(byDue);
@@ -716,7 +720,7 @@ async function importTasks() {
   const before = snapshot();
   try {
     const lists = (await get('https://tasks.googleapis.com/tasks/v1/users/@me/lists?maxResults=100')).items || [];
-    const have = new Set(S.tasks.map(t => t.gid).filter(Boolean)); let added = 0, skipped = 0;
+    const have = new Set(S.tasks.map(t => t.gid).filter(Boolean)); let added = 0, skipped = 0, firstPid = null;
     for (const l of lists) {
       const nm = (l.title || '').trim(); let pid = 'inbox';
       if (!['eingang', 'meineaufgaben', 'mytasks'].includes(norm(nm))) {
@@ -732,10 +736,12 @@ async function importTasks() {
         if (have.has(i.id)) { skipped++; continue; }
         const par = i.parent && byId[i.parent];
         S.tasks.push({ id: uid(), gid: i.id, title: i.title.trim(), notes: [i.notes || '', par ? 'Teilaufgabe von: ' + par.title : ''].filter(Boolean).join('\n'), project: pid, due: i.due ? i.due.slice(0, 10) : null, time: null, star: false, done: false, doneAt: null, created: Date.now(), repeat: null, notified: false });
-        added++;
+        added++; firstPid = firstPid || pid;
       }
     }
-    save(); render(); if ($('#overlay').classList.contains('on')) settings();
+    save();
+    if (added) V = { name: 'project', project: firstPid, q: '', filter: null };
+    if ($('#overlay').classList.contains('on')) closeSheet(); else render();
     toast(`${added} Aufgaben aus ${lists.length} Listen übernommen` + (skipped ? ` (${skipped} schon vorhanden)` : ''), () => restore(before));
   } catch (e) {
     restore(before);

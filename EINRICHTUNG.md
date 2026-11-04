@@ -57,3 +57,13 @@ Einmalig, nur lesend. Google Tasks bleibt unverändert.
 3. App: **⚙ Einstellungen → Aus Google Tasks übernehmen → Jetzt importieren**. Google fragt nach der Zustimmung (wie beim ersten Verbinden: Erweitert → Weiter).
 
 Jede Google-Liste wird ein Projekt. Die Listen „Eingang“ und „Meine Aufgaben“ landen im Eingang. Erledigte Aufgaben werden nicht übernommen. Datum bleibt erhalten, Uhrzeiten und Sterne gibt Google nicht heraus.
+
+## Optional: Erinnerungen über den Google Kalender
+
+Aufgaben mit Uhrzeit werden als Termin im privaten Google Kalender angelegt (mit Erinnerung). So klingelt das Handy auch bei geschlossener App. Erledigte oder gelöschte Aufgaben entfernen ihren Termin wieder.
+
+1. Google Cloud, Projekt „Aufgaben“: **APIs & Dienste → Bibliothek → Google Calendar API → Aktivieren**.
+2. **Google Auth Platform → Datenzugriff → Bereiche hinzufügen oder entfernen**: bei „Bereiche manuell hinzufügen“ `https://www.googleapis.com/auth/calendar.events` einfügen, zur Tabelle hinzufügen, aktualisieren, speichern.
+3. App: **Einstellungen → Erinnerungen über Google Kalender → An**. Google fragt einmal nach der Zustimmung (Erweitert → Weiter → Zulassen).
+4. Aufgabe mit Datum und Uhrzeit anlegen, zum Beispiel `Rückruf Schulz morgen 10:00`. Der Termin erscheint kurz danach im Google Kalender.
+5. Der Vorlauf (zur Uhrzeit, 10, 30 oder 60 Minuten vorher) steht in den Einstellungen unter „Vorlauf“.

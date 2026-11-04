@@ -202,7 +202,7 @@ const short = s => { const d = fromYmd(s); return `${pad(d.getDate())}.${pad(d.g
 
 /* ---------- Daten ---------- */
 function fresh() {
-  return { projects: [{ id: 'inbox', name: 'Eingang', color: '#fbbf24', fixed: true }], tasks: [], settings: { notify: false, lead: 0, triage: true }, lastTriage: '' };
+  return { projects: [{ id: 'inbox', name: 'Eingang', color: '#fbbf24', fixed: true }], tasks: [], settings: { notify: false, lead: 0, triage: true, cal: false }, lastTriage: '' };
 }
 function demoData() {
   const t = today(), p = (id, name, color) => ({ id, name, color });
@@ -237,18 +237,22 @@ S.deleted = S.deleted || {};
 const G = { tok: null, exp: 0, fileId: null, status: 'off', busy: false, again: false, timer: null, lastTap: 0 };
 
 /* Änderungen erkennen: jede geänderte Aufgabe bekommt einen Zeitstempel (upd), gelöschte einen Grabstein */
-const hashes = new Map();
+const hashes = new Map(), eidOf = new Map();
 const hashOf = o => { const { upd, notified, ...r } = o; return JSON.stringify(r); };
 function seedHashes() {
-  hashes.clear();
-  S.tasks.forEach(t => { t.upd = t.upd || t.created || 1; hashes.set('t:' + t.id, hashOf(t)); });
+  hashes.clear(); eidOf.clear();
+  S.tasks.forEach(t => { t.upd = t.upd || t.created || 1; hashes.set('t:' + t.id, hashOf(t)); eidOf.set(t.id, t.eid || null); });
   S.projects.forEach(p => { p.upd = p.upd || 1; hashes.set('p:' + p.id, hashOf(p)); });
 }
 function track() {
   const now = Date.now(), seen = new Set(); S.deleted = S.deleted || {};
   const visit = (list, pre) => list.forEach(o => { const k = pre + o.id, h = hashOf(o); seen.add(k); if (hashes.get(k) !== h) { o.upd = now; hashes.set(k, hashOf(o)); delete S.deleted[k]; } });
   visit(S.tasks, 't:'); visit(S.projects, 'p:');
-  for (const k of [...hashes.keys()]) if (!seen.has(k)) { hashes.delete(k); S.deleted[k] = now; }
+  S.tasks.forEach(t => eidOf.set(t.id, t.eid || null));
+  for (const k of [...hashes.keys()]) if (!seen.has(k)) {
+    hashes.delete(k); S.deleted[k] = now;
+    if (k.startsWith('t:')) { const id = k.slice(2), e = eidOf.get(id); if (e) (S.calDel = S.calDel || []).push(e); eidOf.delete(id); }
+  }
   for (const k of Object.keys(S.deleted)) if (now - S.deleted[k] > 90 * 864e5) delete S.deleted[k];
 }
 function save() {
@@ -437,7 +441,12 @@ function updChips(input) {
 /* ---------- Aktionen ---------- */
 let undoStack = null;
 function snapshot() { return JSON.stringify(S.tasks) + '§' + JSON.stringify(S.projects); }
-function restore(s) { const [a, b] = s.split('§'); S.tasks = JSON.parse(a); S.projects = JSON.parse(b); save(); render(); }
+function restore(s) {
+  const [a, b] = s.split('§'), had = new Set(S.tasks.map(t => t.id));
+  S.tasks = JSON.parse(a); S.projects = JSON.parse(b);
+  S.tasks.forEach(t => { if (!had.has(t.id) && t.eid) { (S.calDel = S.calDel || []).push(t.eid); t.eid = null; t.csig = null; } });
+  save(); render();
+}
 function toast(msg, undo) {
   const el = $('#toast'); el.innerHTML = `<span>${esc(msg)}</span>${undo ? '<button>Rückgängig</button>' : ''}`; el.classList.add('on');
   if (undo) el.querySelector('button').onclick = () => { undo(); el.classList.remove('on'); };
@@ -555,6 +564,7 @@ function settings() {
     ${!cid() ? `<label class="field"><span>Client-ID aus der Google-Einrichtung (siehe EINRICHTUNG.md)</span><input data-gid placeholder="1234-abc.apps.googleusercontent.com"></label><div class="srow"><button data-sa="gsave">Speichern</button></div>`
       : S.settings.sync ? `<div class="hrow"><span>Verbunden<small>${syncText()}</small></span></div><div class="srow"><button data-sa="gsync">Jetzt abgleichen</button><button data-sa="gdisc">Trennen</button></div>`
       : `<div class="srow"><button class="pri" data-sa="gconn">Mit Google verbinden</button></div>`}
+    ${cid() && S.settings.sync ? `<div class="gh"><span>Erinnerungen über Google Kalender</span></div><label class="field"><span>Aufgaben mit Uhrzeit werden als Termin im privaten Google Kalender angelegt. So klingelt das Handy auch bei geschlossener App.</span><select data-s="cal"><option value="0" ${!S.settings.cal ? 'selected' : ''}>Aus</option><option value="1" ${S.settings.cal ? 'selected' : ''}>An</option></select></label>` : ''}
     ${cid() ? `<div class="gh"><span>Aus Google Tasks übernehmen</span></div><div class="hrow"><small>Einmalig. Kopiert deine offenen Aufgaben, jede Liste wird ein Projekt. Google Tasks bleibt unverändert. Mehrfaches Importieren ist sicher, schon übernommene Aufgaben werden nicht doppelt angelegt.</small></div><div class="srow"><button data-sa="gimport">Jetzt importieren</button></div>` : ''}
     <div class="srow"><button class="pri" data-sa="close">Fertig</button></div>`);
 }
@@ -614,7 +624,14 @@ document.addEventListener('input', e => {
 document.addEventListener('change', e => {
   if (e.target.id === 'fsel') { V.filter = e.target.value || null; render(); return; }
   const s = e.target.dataset.s;
-  if (s) { if (s === 'notify') { S.settings.notify = e.target.value === '1'; if (S.settings.notify && 'Notification' in window && Notification.permission === 'default') Notification.requestPermission().then(settings); } if (s === 'lead') S.settings.lead = +e.target.value; if (s === 'triage') S.settings.triage = e.target.value === '1'; save(); }
+  if (s) { if (s === 'notify') { S.settings.notify = e.target.value === '1'; if (S.settings.notify && 'Notification' in window && Notification.permission === 'default') Notification.requestPermission().then(settings); } if (s === 'lead') S.settings.lead = +e.target.value; if (s === 'triage') S.settings.triage = e.target.value === '1';
+    if (s === 'cal') {
+      S.settings.cal = e.target.value === '1';
+      if (S.settings.cal) { G.tok = null; lsSet('aufgaben.gtok', ''); G.status = 'busy'; }
+      else S.tasks.forEach(t => { if (t.eid) { (S.calDel = S.calDel || []).push(t.eid); t.eid = null; t.csig = null; } });
+      save(); sync(true); return;
+    }
+    save(); }
 });
 document.addEventListener('submit', e => {
   if (!e.target.matches('[data-cap]')) return; e.preventDefault();
@@ -650,6 +667,8 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) { re
 /* ---------- Google-Abgleich (privater App-Speicher in Google Drive) ---------- */
 const GOOGLE_CLIENT_ID = '486578759977-2jd0qp36gt538qbpq833fl26l1mjeeiv.apps.googleusercontent.com';   // öffentliche Client-ID, kein Geheimnis
 const SCOPE = 'https://www.googleapis.com/auth/drive.appdata';
+const CAL_SCOPE = 'https://www.googleapis.com/auth/calendar.events';
+const scopes = () => SCOPE + (S.settings.cal ? ' ' + CAL_SCOPE : '');
 const lsGet = k => { try { return localStorage.getItem(k) || ''; } catch (e) { return ''; } };
 const lsSet = (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} };
 const cid = () => GOOGLE_CLIENT_ID || lsGet('aufgaben.gclient');
@@ -667,7 +686,7 @@ function requestToken(interactive) {
     let done = false; const fin = v => { if (!done) { done = true; resolve(v); } };
     setTimeout(() => fin(null), 25000);
     const c = google.accounts.oauth2.initTokenClient({
-      client_id: cid(), scope: SCOPE, prompt: interactive ? '' : 'none',
+      client_id: cid(), scope: scopes(), prompt: interactive ? '' : 'none',
       callback: r => { if (r && r.access_token) { G.tok = r.access_token; G.exp = Date.now() + (r.expires_in || 3600) * 1000; lsSet('aufgaben.gtok', JSON.stringify({ t: G.tok, e: G.exp })); fin(G.tok); } else fin(null); },
       error_callback: () => fin(null)
     });
@@ -704,6 +723,8 @@ function mergeData(a, b) {
   return { v: 1, projects, tasks, deleted: del };
 }
 function applyData(d) {
+  const keep = new Set(d.tasks.map(t => t.id));
+  S.tasks.forEach(t => { if (t.eid && !keep.has(t.id)) (S.calDel = S.calDel || []).push(t.eid); });
   S.projects = d.projects; S.tasks = d.tasks; S.deleted = d.deleted;
   seedHashes();
   try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {}
@@ -728,6 +749,14 @@ async function sync(interactive) {
       G.fileId = r && r.id;
     } else {
       await dfetch(`https://www.googleapis.com/upload/drive/v3/files/${G.fileId}?uploadType=media`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body });
+    }
+    if (S.settings.cal || (S.calDel && S.calDel.length)) {
+      try { await calReconcile(); }
+      catch (e) {
+        if (e.code === 'api') { toast('Google Kalender API ist noch nicht aktiviert (siehe Anleitung)'); S.settings.cal = false; save(); setStatus('err'); return; }
+        if (e.code === 401) { G.tok = null; lsSet('aufgaben.gtok', ''); setStatus('auth'); return; }
+        throw e;
+      }
     }
     setStatus('ok');
   } catch (e) { setStatus(e.code === 401 ? 'auth' : 'err'); }
@@ -777,6 +806,42 @@ async function importTasks() {
     restore(before);
     toast(e.code === 403 ? 'Google Tasks API ist noch nicht aktiviert (siehe Anleitung)' : 'Import fehlgeschlagen');
   }
+}
+/* ---------- Erinnerungen als Termin im privaten Google Kalender ---------- */
+function plusMin(due, time, min) { const d = new Date(`${due}T${time}:00`); d.setMinutes(d.getMinutes() + min); return `${ymd(d)}T${pad(d.getHours())}:${pad(d.getMinutes())}:00`; }
+async function calReconcile() {
+  if (!G.tok) return;
+  const base = 'https://www.googleapis.com/calendar/v3/calendars/primary/events';
+  const call = async (method, url, body) => {
+    const r = await fetch(url, { method, headers: { Authorization: 'Bearer ' + G.tok, 'Content-Type': 'application/json' }, body: body ? JSON.stringify(body) : undefined });
+    if (r.status === 401 || r.status === 403) {
+      const txt = await r.text().catch(() => ''); const e = new Error('auth');
+      e.code = /accessNotConfigured|has not been used|is disabled/i.test(txt) ? 'api' : 401; throw e;
+    }
+    if (r.status === 404 || r.status === 410) return null;
+    if (!r.ok) throw new Error('cal ' + r.status);
+    return r.status === 204 ? {} : r.json();
+  };
+  let changed = false;
+  const used = new Set(S.tasks.map(t => t.eid).filter(Boolean));
+  for (const eid of [...(S.calDel || [])]) {
+    if (!used.has(eid)) await call('DELETE', `${base}/${encodeURIComponent(eid)}`);
+    S.calDel = S.calDel.filter(x => x !== eid); changed = true;
+  }
+  if (S.settings.cal) {
+    const lead = S.settings.lead || 0, tz = Intl.DateTimeFormat().resolvedOptions().timeZone, td = today();
+    for (const t of S.tasks) {
+      const want = !t.done && t.due && t.time && t.due >= td;
+      if (!want) { if (t.eid) { await call('DELETE', `${base}/${encodeURIComponent(t.eid)}`); t.eid = null; t.csig = null; changed = true; } continue; }
+      const sig = [t.title, t.due, t.time, lead].join('|');
+      if (t.eid && t.csig === sig) continue;
+      const body = { summary: 'Aufgabe: ' + t.title, description: 'Erinnerung aus „Meine Aufgaben“', start: { dateTime: `${t.due}T${t.time}:00`, timeZone: tz }, end: { dateTime: plusMin(t.due, t.time, 15), timeZone: tz }, transparency: 'transparent', reminders: { useDefault: false, overrides: [{ method: 'popup', minutes: lead }] } };
+      let r = t.eid ? await call('PATCH', `${base}/${encodeURIComponent(t.eid)}`, body) : null;
+      if (!r) r = await call('POST', base, body);
+      if (r && r.id) { t.eid = r.id; t.csig = sig; changed = true; }
+    }
+  }
+  if (changed) save();
 }
 function syncText() { return ({ ok: 'abgeglichen', busy: 'gleicht ab …', auth: 'Anmeldung nötig (einmal tippen)', err: 'Fehler beim Abgleich', off: '' })[G.status] || ''; }
 if (cid()) loadGis().catch(() => {});

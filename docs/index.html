@@ -1,0 +1,543 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Meine Aufgaben</title>
+<meta name="theme-color" content="#0f0b1f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Aufgaben">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+:root{--bg:#0f0b1f;--card:rgba(255,255,255,.06);--card2:rgba(255,255,255,.1);--line:rgba(255,255,255,.12);--text:#ece9ff;--muted:#a39cc9;--accent:#8b5cf6;--accent2:#6366f1;--red:#f87171;--green:#34d399;--amber:#fbbf24;--safe-b:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{background:var(--bg)}
+body{margin:0;min-height:100vh;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--text);font-size:15px;line-height:1.35;background:radial-gradient(1200px 600px at 8% -10%,#3b1f7a 0,transparent 60%),radial-gradient(900px 500px at 110% 5%,#1e2a7a 0,transparent 55%),var(--bg);background-attachment:fixed}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;padding:0}
+input,select,textarea{font:inherit;color:inherit}
+#app{display:grid;grid-template-columns:250px 1fr;gap:20px;max-width:1180px;margin:0 auto;padding:24px 20px 40px}
+.side{position:sticky;top:24px;align-self:start;background:var(--card);border:1px solid var(--line);border-radius:22px;padding:16px 12px;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);max-height:calc(100vh - 48px);overflow:auto}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:16px;padding:2px 10px 14px;letter-spacing:-.01em}
+.brand i{width:28px;height:28px;border-radius:9px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:grid;place-items:center;font-style:normal;font-size:15px}
+.nav{display:flex;align-items:center;gap:10px;width:100%;padding:10px 12px;border-radius:12px;text-align:left;color:var(--text)}
+.nav:hover{background:rgba(255,255,255,.05)}
+.nav.on{background:linear-gradient(90deg,rgba(139,92,246,.32),rgba(99,102,241,.12));box-shadow:inset 0 0 0 1px rgba(139,92,246,.4)}
+.nav .ic{width:18px;text-align:center;color:var(--muted)}
+.nav.on .ic{color:#c4b5fd}
+.nav .dot{width:10px;height:10px;border-radius:50%;background:var(--c);margin:0 4px}
+.nav .n{margin-left:auto;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.nav .n.warn{color:var(--red);font-weight:700}
+.sep{display:flex;justify-content:space-between;align-items:center;font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);padding:16px 12px 6px}
+.sep button{color:var(--accent);font-size:18px;line-height:1;padding:0 4px}
+.main{min-width:0}
+.head{display:flex;justify-content:space-between;align-items:flex-end;gap:14px;flex-wrap:wrap;margin-bottom:16px}
+h1{font-size:28px;margin:0;font-weight:700;letter-spacing:-.02em}
+.sub{color:var(--muted);font-size:14px;margin-top:3px}
+.tools{display:flex;gap:8px;align-items:center}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:12px;background:var(--card);border:1px solid var(--line);font-size:13px;color:var(--text)}
+.pill:hover{background:var(--card2)}
+.search{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:8px 14px;width:170px;outline:none;font-size:13px}
+.search:focus{border-color:var(--accent)}
+.capwrap{margin-bottom:18px}
+.cap{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:6px 6px 6px 16px;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+.cap:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px rgba(139,92,246,.25)}
+.cap .plus{color:var(--accent);font-size:22px;line-height:1}
+.cap input{flex:1;min-width:0;background:none;border:0;outline:none;padding:10px 0;font-size:15px}
+.cap input::placeholder{color:var(--muted)}
+.go{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border-radius:12px;padding:9px 16px;font-weight:600;font-size:14px}
+.chips{display:flex;gap:6px;flex-wrap:wrap;min-height:6px;margin-top:8px}
+.chips span{font-size:12px;padding:3px 10px;border-radius:999px;background:rgba(139,92,246,.2);border:1px solid rgba(139,92,246,.4)}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:12px 16px;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+.stat b{display:block;font-size:26px;line-height:1.1}
+.stat span{font-size:12px;color:var(--muted)}
+.bar{height:6px;border-radius:6px;background:rgba(255,255,255,.08);margin:0 0 20px;overflow:hidden}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--green),#22d3ee);border-radius:6px;transition:width .4s}
+.card{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:6px 14px 10px;margin-bottom:16px;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+.gh{display:flex;justify-content:space-between;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);padding:14px 4px 8px}
+.gh.late{color:var(--red)}.gh.top{color:var(--amber)}
+.row{display:flex;align-items:center;gap:12px;padding:11px 10px;border-radius:14px;margin-top:4px;border:1px solid transparent;transition:background .15s}
+.row:hover{background:rgba(255,255,255,.04)}
+.row.over{background:rgba(248,113,113,.08);border-color:rgba(248,113,113,.28)}
+.row.top{background:linear-gradient(90deg,rgba(139,92,246,.24),rgba(99,102,241,.08));border-color:rgba(139,92,246,.4)}
+.star{font-size:19px;color:rgba(255,255,255,.22);width:24px;flex:none;line-height:1}
+.star.on{color:var(--amber)}
+.chk{width:24px;height:24px;border-radius:8px;border:2px solid var(--muted);flex:none;position:relative}
+.chk:hover{border-color:var(--green)}
+.done .chk{background:var(--green);border-color:var(--green)}
+.done .chk:after{content:"";position:absolute;left:7px;top:2px;width:6px;height:11px;border:solid #07261b;border-width:0 2.5px 2.5px 0;transform:rotate(45deg)}
+.t{flex:1;min-width:0;text-align:left;cursor:pointer;padding:2px 0}
+.t .txt{display:block;overflow-wrap:anywhere}
+.done .txt{text-decoration:line-through;color:var(--muted)}
+.t small{display:block;color:var(--muted);font-size:12.5px;margin-top:2px}
+.t small.late{color:var(--red)}
+.acts{display:flex;gap:6px;opacity:0;transition:opacity .15s}
+.row:hover .acts,.row.over .acts{opacity:1}
+.acts button{font-size:12px;padding:4px 10px;border-radius:9px;background:rgba(255,255,255,.09);color:var(--muted);white-space:nowrap}
+.acts button:hover{background:rgba(139,92,246,.35);color:#fff}
+.tag{margin-left:4px;font-size:11.5px;padding:3px 10px;border-radius:999px;background:color-mix(in srgb,var(--c) 22%,transparent);color:var(--c);white-space:nowrap;flex:none}
+.empty{text-align:center;color:var(--muted);padding:44px 10px}
+.empty b{display:block;font-size:18px;color:var(--text);margin-bottom:4px}
+.hint{font-size:13px;color:var(--amber);padding:6px 4px 2px}
+.fab,.tabs{display:none}
+#overlay{position:fixed;inset:0;background:rgba(5,3,16,.6);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);display:none;z-index:50;align-items:center;justify-content:center;padding:16px}
+#overlay.on{display:flex}
+.sheet{width:100%;max-width:520px;max-height:90vh;overflow:auto;background:#1a1333;border:1px solid var(--line);border-radius:24px;padding:20px;box-shadow:0 30px 80px rgba(0,0,0,.6)}
+.sheet h2{margin:0 0 14px;font-size:18px}
+.field{display:block;margin-bottom:12px}
+.field>span{display:block;font-size:12px;color:var(--muted);margin-bottom:5px}
+.field input,.field select,.field textarea{width:100%;background:rgba(255,255,255,.07);border:1px solid var(--line);border-radius:12px;padding:10px 12px;outline:none;color-scheme:dark}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--accent)}
+.field textarea{min-height:84px;resize:vertical}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.qd{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.qd button{font-size:13px;padding:6px 12px;border-radius:10px;background:rgba(255,255,255,.08)}
+.qd button:hover{background:rgba(139,92,246,.35)}
+.srow{display:flex;gap:10px;margin-top:6px}
+.srow button{flex:1;padding:11px;border-radius:12px;background:rgba(255,255,255,.08);font-weight:600}
+.srow .pri{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff}
+.srow .del{color:var(--red);flex:0 0 auto;padding:11px 16px}
+.tr{display:flex;align-items:center;gap:10px;padding:10px 4px;border-top:1px solid var(--line)}
+.tr:first-of-type{border-top:0}
+.tr .t{cursor:default}
+.tr .acts{opacity:1;flex-wrap:wrap;justify-content:flex-end}
+.hrow{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-top:1px solid var(--line);gap:10px}
+.hrow small{color:var(--muted);display:block}
+#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#2a2150;border:1px solid var(--line);border-radius:14px;padding:10px 14px;display:none;align-items:center;gap:14px;z-index:60;box-shadow:0 10px 30px rgba(0,0,0,.5);max-width:92vw}
+#toast.on{display:flex}
+#toast button{color:#c4b5fd;font-weight:700}
+@media(max-width:820px){
+ #app{display:block;padding:calc(14px + env(safe-area-inset-top,0px)) 14px calc(130px + var(--safe-b))}
+ .side{display:none}
+ h1{font-size:26px}
+ .stats{grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:12px}
+ .stat{padding:8px 14px;border-radius:16px}.stat b{font-size:22px}.stat span{font-size:11.5px}
+ .bar{margin-bottom:14px}
+ .row{flex-wrap:wrap;padding:12px 8px;row-gap:8px}
+ .row .t{flex:1 1 120px;min-width:0}
+ .row.over .acts{order:9;flex-basis:100%;padding-left:36px}
+ .row.over .acts button{padding:6px 14px}
+ .capwrap.desk,.search,.tools .hide-m{display:none}
+ .acts{opacity:1}
+ .row:not(.over) .acts{display:none}
+ .card{padding:4px 8px 8px;border-radius:20px}
+ .fab{display:grid;position:fixed;right:18px;bottom:calc(76px + var(--safe-b));width:58px;height:58px;border-radius:19px;background:linear-gradient(135deg,var(--accent),var(--accent2));font-size:32px;place-items:center;box-shadow:0 10px 30px rgba(139,92,246,.55);z-index:40;color:#fff}
+ .tabs{display:flex;position:fixed;left:0;right:0;bottom:0;padding:8px 8px calc(8px + var(--safe-b));background:rgba(20,13,45,.88);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-top:1px solid var(--line);z-index:30}
+ .tabs button{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11px;color:var(--muted);padding:6px 0;position:relative}
+ .tabs button b{font-size:19px;font-weight:400}
+ .tabs button.on{color:#c4b5fd}
+ .tabs .badge{position:absolute;top:0;right:22%;background:var(--red);color:#fff;font-size:10px;border-radius:999px;padding:1px 6px;font-weight:700}
+ #overlay{align-items:flex-end;padding:0}
+ .sheet{max-width:none;border-radius:24px 24px 0 0;max-height:92vh;padding-bottom:calc(20px + var(--safe-b))}
+ #toast{bottom:calc(92px + var(--safe-b))}
+}
+</style>
+</head>
+<body>
+<div id="app"><aside class="side" id="side"></aside><main class="main" id="main"></main></div>
+<button class="fab" id="fab" aria-label="Neue Aufgabe">+</button>
+<nav class="tabs" id="tabs"></nav>
+<div id="overlay"></div>
+<div id="toast"></div>
+
+<script>
+(() => {
+'use strict';
+const KEY = 'aufgaben.v1';
+const COLORS = ['#38bdf8','#f472b6','#a78bfa','#34d399','#fb923c','#22d3ee','#facc15','#94a3b8'];
+const DAYS = ['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'];
+const params = new URLSearchParams(location.search);
+const DEMO = params.has('demo');
+
+/* ---------- Helfer ---------- */
+const pad = n => String(n).padStart(2, '0');
+const ymd = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+const today = () => ymd(new Date());
+const fromYmd = s => new Date(s + 'T12:00:00');
+const addDays = (s, n) => { const d = fromYmd(s); d.setDate(d.getDate() + n); return ymd(d); };
+const diff = (a, b) => Math.round((fromYmd(a) - fromYmd(b)) / 864e5);
+const uid = () => Math.random().toString(36).slice(2, 10);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const $ = s => document.querySelector(s);
+const isMobile = () => matchMedia('(max-width:820px)').matches;
+const norm = s => s.toLowerCase().replace(/[\s_-]+/g, '');
+const nextWeekday = (from, wd) => { let n = (wd - fromYmd(from).getDay() + 7) % 7; if (n === 0) n = 7; return addDays(from, n); };
+const short = s => { const d = fromYmd(s); return `${pad(d.getDate())}.${pad(d.getMonth() + 1)}.`; };
+
+/* ---------- Daten ---------- */
+function fresh() {
+  return { projects: [{ id: 'inbox', name: 'Eingang', color: '#fbbf24', fixed: true }], tasks: [], settings: { notify: false, lead: 0, triage: true }, lastTriage: '' };
+}
+function demoData() {
+  const t = today(), p = (id, name, color) => ({ id, name, color });
+  const mk = (title, o = {}) => ({ id: uid(), title, notes: '', project: 'inbox', due: null, time: null, star: false, done: false, doneAt: null, created: Date.now(), repeat: null, notified: false, ...o });
+  return {
+    projects: [{ id: 'inbox', name: 'Eingang', color: '#fbbf24', fixed: true }, p('auf', 'Aufmaß-Tool', '#8b5cf6'), p('alp', 'Alpha', '#38bdf8'), p('kub', 'Kunde B', '#f472b6'), p('org', 'Orga', '#94a3b8')],
+    tasks: [
+      mk('Rechnung Lieferant prüfen', { project: 'alp', due: addDays(t, -1) }),
+      mk('Rückruf Herr Meier', { project: 'kub', due: addDays(t, -4) }),
+      mk('Konzept Aufmaß-Tool: Entwurf fertig', { project: 'auf', due: t, star: true }),
+      mk('Angebot Kunde B finalisieren', { project: 'kub', due: t, time: '15:00', star: true }),
+      mk('Testplan kommentieren', { project: 'auf', due: t, star: true }),
+      mk('Folien für Lenkungskreis sammeln', { project: 'alp', due: t }),
+      mk('Zugang neues Tool beantragen', { project: 'org', due: t }),
+      mk('Reisekosten einreichen', { project: 'org', due: t, done: true, doneAt: Date.now() }),
+      mk('Protokoll Jour fixe verschicken', { project: 'alp', due: t, done: true, doneAt: Date.now() }),
+      mk('Wochenrückblick', { project: 'org', due: addDays(t, 3), repeat: 'weekly', time: '15:00' }),
+      mk('Angebot nachfassen', { project: 'kub', due: addDays(t, 1) }),
+      mk('Material bestellen', { project: 'auf' }),
+      mk('Idee: Vorlage für Aufmaß-Protokolle'),
+    ],
+    settings: { notify: false, lead: 0, triage: false }, lastTriage: ''
+  };
+}
+function load() {
+  if (DEMO) return demoData();
+  try { const s = JSON.parse(localStorage.getItem(KEY)); if (s && s.tasks && s.projects) { s.settings = { ...fresh().settings, ...s.settings }; return s; } } catch (e) {}
+  return fresh();
+}
+let S = load();
+function save() { if (DEMO) return; try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+const proj = id => S.projects.find(p => p.id === id) || S.projects[0];
+const taskById = id => S.tasks.find(t => t.id === id);
+let V = { name: 'today', project: null, q: '' };
+
+/* ---------- Schnell-Erfassung ---------- */
+const WD_FULL = { sonntag: 0, montag: 1, dienstag: 2, mittwoch: 3, donnerstag: 4, freitag: 5, samstag: 6 };
+const WD_SHORT = { so: 0, mo: 1, di: 2, mi: 3, do: 4, fr: 5, sa: 6 };
+function parseQuick(text) {
+  let s = ' ' + text + ' ', o = { title: '', project: null, newProject: null, due: null, time: null, star: false, repeat: null };
+  const cut = (re, fn) => { const m = s.match(re); if (m) { s = s.replace(re, ' '); fn && fn(m); } return !!m; };
+  cut(/(^|\s)(?:[*!★])(?=\s)/, () => o.star = true);
+  // Projektname mit Leerzeichen (z. B. "#Kunde B") zuerst, längste Namen vorn
+  const named = [...S.projects].sort((a, b) => b.name.length - a.name.length).find(p => {
+    const re = new RegExp('(^|\\s)#' + p.name.trim().split(/\s+/).map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('\\s+') + '(?=\\s|$)', 'iu');
+    return re.test(s);
+  });
+  if (named) {
+    s = s.replace(new RegExp('(^|\\s)#' + named.name.trim().split(/\s+/).map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('\\s+') + '(?=\\s|$)', 'iu'), ' ');
+    o.project = named.id;
+  } else cut(/(^|\s)#([\p{L}\p{N}_-]+)/u, m => {
+    const q = norm(m[2]);
+    const hit = S.projects.find(p => norm(p.name) === q) || S.projects.find(p => norm(p.name).startsWith(q));
+    if (hit) o.project = hit.id; else o.newProject = m[2];
+  });
+  cut(/\b(täglich|werktags|wöchentlich|monatlich)\b/i, m => o.repeat = { 'täglich': 'daily', werktags: 'weekdays', 'wöchentlich': 'weekly', monatlich: 'monthly' }[m[1].toLowerCase()]);
+  let t0 = today();
+  cut(/\bjeden\s+(montag|dienstag|mittwoch|donnerstag|freitag|samstag|sonntag)\b/i, m => { o.repeat = 'weekly'; o.due = nextWeekday(t0, WD_FULL[m[1].toLowerCase()]); });
+  if (!o.due) {
+    if (cut(/\b(übermorgen|uebermorgen)\b/i, () => o.due = addDays(t0, 2))) {}
+    else if (cut(/\bmorgen\b/i, () => o.due = addDays(t0, 1))) {}
+    else if (cut(/\bheute\b/i, () => o.due = t0)) {}
+    else if (cut(/\bn(?:ä|ae)chste\s+woche\b/i, () => o.due = nextWeekday(t0, 1))) {}
+    else if (cut(/\bin\s+(\d{1,3})\s+tag(?:en)?\b/i, m => o.due = addDays(t0, +m[1]))) {}
+    else if (cut(/(^|\s)(\d{1,2})\.(\d{1,2})\.?(\d{2,4})?(?=\s|$)/, m => {
+      const d = +m[2], mo = +m[3]; let y = m[4] ? +m[4] : new Date().getFullYear(); if (y < 100) y += 2000;
+      if (mo >= 1 && mo <= 12 && d >= 1 && d <= 31) { let c = `${y}-${pad(mo)}-${pad(d)}`; if (!m[4] && c < t0) c = `${y + 1}-${pad(mo)}-${pad(d)}`; o.due = c; }
+    })) {}
+    else if (cut(/\b(montag|dienstag|mittwoch|donnerstag|freitag|samstag|sonntag)\b/i, m => o.due = nextWeekday(t0, WD_FULL[m[1].toLowerCase()]))) {}
+    else cut(/\bam\s+(mo|di|mi|do|fr|sa|so)\b/i, m => o.due = nextWeekday(t0, WD_SHORT[m[1].toLowerCase()]));
+  }
+  if (!cut(/\b(?:um\s+)?(\d{1,2}):(\d{2})(?:\s*uhr)?\b/i, m => { if (+m[1] < 24 && +m[2] < 60) o.time = `${pad(+m[1])}:${m[2]}`; }))
+    cut(/\b(?:um\s+)?(\d{1,2})\s*uhr\b/i, m => { if (+m[1] < 24) o.time = `${pad(+m[1])}:00`; });
+  if (o.time && !o.due) o.due = t0;
+  o.title = s.replace(/\s+/g, ' ').trim();
+  return o;
+}
+function chipsFor(o) {
+  const c = [];
+  if (o.project) c.push('📁 ' + esc(proj(o.project).name)); else if (o.newProject) c.push('📁 neu: ' + esc(o.newProject));
+  if (o.due) c.push('📅 ' + dueLabel({ due: o.due }, true));
+  if (o.time) c.push('🔔 ' + o.time);
+  if (o.repeat) c.push('↻ ' + ({ daily: 'täglich', weekdays: 'werktags', weekly: 'wöchentlich', monthly: 'monatlich' })[o.repeat]);
+  if (o.star) c.push('★ Top');
+  return c.map(x => `<span>${x}</span>`).join('');
+}
+
+/* ---------- Anzeige-Helfer ---------- */
+function dueLabel(t, plain) {
+  if (!t.due) return '';
+  const d = diff(t.due, today());
+  if (d === 0) return 'Heute';
+  if (d === 1) return 'Morgen';
+  if (d === -1) return plain ? 'Gestern' : 'fällig seit gestern';
+  if (d < 0) return plain ? `${short(t.due)}` : `fällig seit ${-d} Tagen`;
+  if (d < 7) return DAYS[fromYmd(t.due).getDay()];
+  return DAYS[fromYmd(t.due).getDay()].slice(0, 2) + ', ' + short(t.due);
+}
+const isOver = t => !t.done && t.due && t.due < today();
+const open = () => S.tasks.filter(t => !t.done);
+const byDue = (a, b) => (a.due || '9') .localeCompare(b.due || '9') || (b.star - a.star) || (a.time || '99').localeCompare(b.time || '99') || a.created - b.created;
+function meta(t, mode) {
+  const bits = [];
+  if (mode === 'date' && t.due) bits.push(`<span class="${isOver(t) ? 'late' : ''}">${dueLabel(t)}</span>`);
+  else if (isOver(t)) bits.push(`<span class="late">${dueLabel(t)}</span>`);
+  if (t.time) bits.push('🔔 ' + t.time);
+  if (t.repeat) bits.push('↻ ' + ({ daily: 'täglich', weekdays: 'werktags', weekly: 'wöchentlich', monthly: 'monatlich' })[t.repeat]);
+  if (t.notes) bits.push('≡ Notiz');
+  return bits.length ? `<small class="${isOver(t) && mode !== 'date' ? 'late' : ''}">${bits.join(' · ')}</small>` : '';
+}
+function row(t, o = {}) {
+  const p = proj(t.project), over = isOver(t), td = today();
+  const acts = t.done ? '' : `<div class="acts">${t.due !== td ? '<button data-a="today">Heute</button>' : ''}${t.due !== addDays(td, 1) ? '<button data-a="tomorrow">Morgen</button>' : ''}</div>`;
+  return `<div class="row ${over ? 'over' : ''} ${o.top ? 'top' : ''} ${t.done ? 'done' : ''}" data-id="${t.id}">
+    <button class="star ${t.star ? 'on' : ''}" data-a="star" aria-label="Markieren">${t.star ? '★' : '☆'}</button>
+    <button class="chk" data-a="done" aria-label="Erledigt"></button>
+    <div class="t" data-a="open"><span class="txt">${esc(t.title)}</span>${meta(t, o.date ? 'date' : '')}</div>
+    ${acts}${o.noTag ? '' : `<span class="tag" style="--c:${p.color}">${esc(p.name)}</span>`}
+  </div>`;
+}
+const group = (title, list, cls = '', o = {}) => list.length ? `<div class="gh ${cls}"><span>${title}</span><span>${o.count || list.length}</span></div>${list.map(t => row(t, o)).join('')}` : '';
+
+/* ---------- Ansichten ---------- */
+function viewHTML() {
+  const td = today(), op = open();
+  if (V.name === 'today') {
+    const over = op.filter(isOver).sort(byDue);
+    const todayT = op.filter(t => t.due === td);
+    const top = todayT.filter(t => t.star).sort(byDue), rest = todayT.filter(t => !t.star).sort(byDue);
+    const doneT = S.tasks.filter(t => t.done && t.doneAt && ymd(new Date(t.doneAt)) === td);
+    const total = over.length + todayT.length + doneT.length, pct = total ? Math.round(doneT.length / total * 100) : 0;
+    const stats = `<div class="stats"><div class="stat"><b>${todayT.length + over.length}</b><span>Offen für heute</span></div><div class="stat"><b style="color:var(--red)">${over.length}</b><span>Liegen geblieben</span></div><div class="stat"><b style="color:var(--amber)">${S.tasks.filter(t => !t.done && t.star).length}</b><span>Markiert</span></div><div class="stat"><b style="color:var(--green)">${doneT.length}</b><span>Erledigt heute</span></div></div><div class="bar"><i style="width:${pct}%"></i></div>`;
+    let body = group('⚠ Liegen geblieben', over, 'late');
+    body += group('★ Top heute', top, 'top', { top: true, count: `${top.length} / 3` });
+    body += group(top.length ? 'Wenn Zeit bleibt' : 'Heute', rest);
+    body += group('Erledigt heute', doneT);
+    const hint = top.length > 3 ? '<div class="hint">Mehr als 3 Top-Aufgaben: Was kann auf morgen?</div>' : '';
+    if (!over.length && !todayT.length && !doneT.length) body = '<div class="empty"><b>Nichts für heute</b>Erfasse oben eine Aufgabe oder schau in den Eingang.</div>';
+    return { title: 'Heute', sub: new Date().toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long' }), html: stats + hint + `<div class="card">${body}</div>`, cap: true };
+  }
+  if (V.name === 'starred') {
+    const l = op.filter(t => t.star).sort(byDue);
+    return { title: 'Markiert', sub: 'Deine wichtigsten Aufgaben, über alle Projekte', html: `<div class="card">${l.length ? l.map(t => row(t, { date: true })).join('') : '<div class="empty"><b>Noch nichts markiert</b>Tippe den Stern an einer Aufgabe.</div>'}</div>`, cap: true };
+  }
+  if (V.name === 'upcoming') {
+    const l = op.filter(t => t.due && t.due > td).sort(byDue), g = {};
+    l.forEach(t => { const k = diff(t.due, td) < 7 ? t.due : 'later'; (g[k] = g[k] || []).push(t); });
+    let body = Object.keys(g).sort().map(k => group(k === 'later' ? 'Später' : `${dueLabel({ due: k }, true)} · ${short(k)}`, g[k], '', { date: false })).join('');
+    return { title: 'Geplant', sub: 'Was in den nächsten Tagen ansteht', html: `<div class="card">${body || '<div class="empty"><b>Nichts geplant</b></div>'}</div>`, cap: true };
+  }
+  if (V.name === 'done') {
+    const l = S.tasks.filter(t => t.done).sort((a, b) => (b.doneAt || 0) - (a.doneAt || 0)).slice(0, 60);
+    return { title: 'Erledigt', sub: 'Zuletzt abgehakt. Kreis antippen stellt wieder her.', html: `<div class="card">${l.map(t => row(t)).join('') || '<div class="empty"><b>Noch nichts erledigt</b></div>'}</div>`, cap: false };
+  }
+  if (V.name === 'search') {
+    const q = V.q.toLowerCase(), l = S.tasks.filter(t => (t.title + ' ' + t.notes).toLowerCase().includes(q)).sort((a, b) => a.done - b.done || byDue(a, b));
+    return { title: 'Suche', sub: `„${esc(V.q)}“ · ${l.length} Treffer`, html: `<div class="card">${l.map(t => row(t, { date: true })).join('') || '<div class="empty"><b>Nichts gefunden</b></div>'}</div>`, cap: false };
+  }
+  if (V.name === 'projects') {
+    const items = S.projects.map(p => `<button class="nav" data-go="project:${p.id}"><span class="dot" style="--c:${p.color}"></span>${esc(p.name)}<span class="n">${op.filter(t => t.project === p.id).length}</span></button>`).join('');
+    return { title: 'Projekte', sub: '', html: `<div class="card" style="padding:8px">${items}<button class="nav" data-a="newproject"><span class="ic">＋</span>Neues Projekt</button><button class="nav" data-go="upcoming"><span class="ic">▦</span>Geplant</button><button class="nav" data-go="done"><span class="ic">✓</span>Erledigt</button></div>`, cap: false };
+  }
+  if (V.name === 'project') {
+    const p = proj(V.project), l = op.filter(t => t.project === p.id).sort(byDue);
+    const dated = l.filter(t => t.due), und = l.filter(t => !t.due);
+    const inboxHint = p.id === 'inbox' ? '<div class="hint" style="color:var(--muted)">Hier landet alles ohne Zuordnung. Mit „Heute“ / „Morgen“ oder Antippen sortierst du es ein.</div>' : '';
+    let body = dated.map(t => row(t, { date: true, noTag: true })).join('') + group(dated.length ? 'Ohne Datum' : '', und, '', { noTag: true });
+    return { title: p.name, sub: `${l.length} offen`, html: inboxHint + `<div class="card">${body || '<div class="empty"><b>Alles erledigt</b></div>'}</div>`, cap: true };
+  }
+}
+
+/* ---------- Rendering ---------- */
+function counts() {
+  const td = today(), op = open();
+  return { today: op.filter(t => t.due && t.due <= td).length, over: op.filter(isOver).length, starred: op.filter(t => t.star).length, upcoming: op.filter(t => t.due && t.due > td).length };
+}
+function capHTML(id) {
+  return `<form class="cap" data-cap><span class="plus">＋</span><input id="${id}" autocomplete="off" enterkeyhint="done" placeholder="Neue Aufgabe, z. B. Angebot schicken #KundeB morgen 15:00 *"><button class="go" type="submit">Hinzufügen</button></form><div class="chips" data-chips></div>`;
+}
+function render() {
+  const c = counts(), v = viewHTML();
+  const navB = (name, ic, label, n, warn, extra = '') => `<button class="nav ${(V.name === name && !extra) ? 'on' : ''}" data-go="${name}"><span class="ic">${ic}</span>${label}${n ? `<span class="n ${warn ? 'warn' : ''}">${n}</span>` : ''}</button>`;
+  $('#side').innerHTML = `<div class="brand"><i>✓</i>Meine Aufgaben</div>
+    ${navB('today', '◉', 'Heute', c.today)}${navB('starred', '★', 'Markiert', c.starred)}${navB('upcoming', '▦', 'Geplant', c.upcoming)}${navB('done', '✓', 'Erledigt', 0)}
+    <div class="sep"><span>Projekte</span><button data-a="newproject" aria-label="Neues Projekt">＋</button></div>
+    ${S.projects.map(p => `<button class="nav ${V.name === 'project' && V.project === p.id ? 'on' : ''}" data-go="project:${p.id}"><span class="dot" style="--c:${p.color}"></span>${esc(p.name)}<span class="n">${open().filter(t => t.project === p.id).length || ''}</span></button>`).join('')}
+    <div class="sep"><span>Mehr</span></div>
+    <button class="nav" data-a="triage"><span class="ic">☀</span>Tagesplanung</button>
+    <button class="nav" data-a="settings"><span class="ic">⚙</span>Einstellungen</button>`;
+  const keepQ = ($('#qa') || {}).value || '', hadFocus = document.activeElement && document.activeElement.id === 'qa';
+  $('#main').innerHTML = `<div class="head"><div><h1>${esc(v.title)}</h1>${v.sub ? `<div class="sub">${v.sub}</div>` : ''}</div>
+    <div class="tools"><input class="search" id="sq" placeholder="Suchen …" value="${V.name === 'search' ? esc(V.q) : ''}"><button class="pill" data-a="settings" aria-label="Einstellungen">⚙</button></div></div>
+    ${v.cap ? `<div class="capwrap desk">${capHTML('qa')}</div>` : ''}${v.html}`;
+  if (v.cap && $('#qa')) { $('#qa').value = keepQ; updChips($('#qa')); if (hadFocus && !isMobile()) $('#qa').focus(); }
+  const tab = (name, ic, label, badge) => `<button class="${V.name === name || (name === 'projects' && V.name === 'project') ? 'on' : ''}" data-go="${name}"><b>${ic}</b>${label}${badge ? `<span class="badge">${badge}</span>` : ''}</button>`;
+  $('#tabs').innerHTML = tab('today', '◉', 'Heute', c.over) + tab('starred', '★', 'Markiert') + tab('upcoming', '▦', 'Geplant') + tab('projects', '☰', 'Projekte') + `<button data-a="settings"><b>⚙</b>Mehr</button>`;
+}
+function updChips(input) {
+  const box = input.closest('.capwrap, .sheet'); if (!box) return;
+  const ch = box.querySelector('[data-chips]'); if (ch) ch.innerHTML = input.value.trim() ? chipsFor(parseQuick(input.value)) : '';
+}
+
+/* ---------- Aktionen ---------- */
+let undoStack = null;
+function snapshot() { return JSON.stringify(S.tasks) + '§' + JSON.stringify(S.projects); }
+function restore(s) { const [a, b] = s.split('§'); S.tasks = JSON.parse(a); S.projects = JSON.parse(b); save(); render(); }
+function toast(msg, undo) {
+  const el = $('#toast'); el.innerHTML = `<span>${esc(msg)}</span>${undo ? '<button>Rückgängig</button>' : ''}`; el.classList.add('on');
+  if (undo) el.querySelector('button').onclick = () => { undo(); el.classList.remove('on'); };
+  clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove('on'), 5000);
+}
+function nextDue(t) {
+  const base = t.due && t.due > today() ? t.due : today();
+  if (t.repeat === 'daily') return addDays(base, 1);
+  if (t.repeat === 'weekly') return addDays(t.due || today(), 7) > today() ? addDays(t.due || today(), 7) : addDays(today(), 7);
+  if (t.repeat === 'monthly') { const d = fromYmd(t.due || today()); d.setMonth(d.getMonth() + 1); return ymd(d); }
+  if (t.repeat === 'weekdays') { let n = addDays(today(), 1); while ([0, 6].includes(fromYmd(n).getDay())) n = addDays(n, 1); return n; }
+  return null;
+}
+function setDone(t, val) {
+  const snap = snapshot();
+  t.done = val; t.doneAt = val ? Date.now() : null;
+  let msg = val ? 'Erledigt' : 'Wiederhergestellt';
+  if (val && t.repeat) { const nd = nextDue(t); if (nd) { S.tasks.push({ ...t, id: uid(), done: false, doneAt: null, due: nd, notified: false, created: Date.now() }); msg = 'Erledigt · nächste am ' + short(nd); } }
+  save(); render(); toast(msg, () => restore(snap));
+}
+function move(t, due, label) {
+  const snap = snapshot(); t.due = due; t.notified = false; save(); render(); toast(label, () => restore(snap));
+}
+function addTask(text, ctx) {
+  const o = parseQuick(text); if (!o.title) return false;
+  let pid = o.project;
+  if (!pid && o.newProject) { const p = { id: uid(), name: o.newProject.replace(/[_-]+/g, ' '), color: COLORS[S.projects.length % COLORS.length] }; S.projects.push(p); pid = p.id; }
+  if (!pid) pid = V.name === 'project' ? V.project : 'inbox';
+  let due = o.due; if (!due && V.name === 'today') due = today();
+  const t = { id: uid(), title: o.title, notes: '', project: pid, due, time: o.time, star: o.star || V.name === 'starred', done: false, doneAt: null, created: Date.now(), repeat: o.repeat, notified: false };
+  const snap = snapshot(); S.tasks.push(t); save(); render();
+  toast('Hinzugefügt' + (due ? ' · ' + dueLabel(t, true) : ' · ' + proj(pid).name), () => restore(snap));
+  return true;
+}
+
+/* ---------- Overlay / Sheets ---------- */
+function showSheet(html) { const o = $('#overlay'); o.innerHTML = `<div class="sheet">${html}</div>`; o.classList.add('on'); }
+function closeSheet() { $('#overlay').classList.remove('on'); $('#overlay').innerHTML = ''; render(); }
+function openTask(id) {
+  const t = taskById(id); if (!t) return;
+  showSheet(`<h2>Aufgabe</h2>
+    <label class="field"><span>Titel</span><input data-f="title" value="${esc(t.title)}"></label>
+    <div class="qd"><button data-q="today">Heute</button><button data-q="tomorrow">Morgen</button><button data-q="monday">Nächster Montag</button><button data-q="none">Ohne Datum</button><button data-q="star">${t.star ? '★ Markiert' : '☆ Markieren'}</button></div>
+    <div class="two"><label class="field"><span>Datum</span><input type="date" data-f="due" value="${t.due || ''}"></label><label class="field"><span>Uhrzeit (Erinnerung)</span><input type="time" data-f="time" value="${t.time || ''}"></label></div>
+    <div class="two"><label class="field"><span>Projekt</span><select data-f="project">${S.projects.map(p => `<option value="${p.id}" ${p.id === t.project ? 'selected' : ''}>${esc(p.name)}</option>`).join('')}</select></label>
+    <label class="field"><span>Wiederholen</span><select data-f="repeat">${[['', 'Nie'], ['daily', 'Täglich'], ['weekdays', 'Werktags'], ['weekly', 'Wöchentlich'], ['monthly', 'Monatlich']].map(([v, l]) => `<option value="${v}" ${(t.repeat || '') === v ? 'selected' : ''}>${l}</option>`).join('')}</select></label></div>
+    <label class="field"><span>Notiz</span><textarea data-f="notes">${esc(t.notes)}</textarea></label>
+    <div class="srow"><button class="del" data-sa="delete">Löschen</button><button class="pri" data-sa="close">Fertig</button></div>`);
+  $('#overlay').dataset.id = id;
+}
+function triage() {
+  const td = today(), over = open().filter(isOver).sort(byDue), inbox = open().filter(t => t.project === 'inbox' && !t.due);
+  const r = t => `<div class="tr" data-id="${t.id}"><div class="t"><span class="txt">${esc(t.title)}</span><small class="${isOver(t) ? 'late' : ''}">${t.due ? dueLabel(t) : 'ohne Datum'} · ${esc(proj(t.project).name)}</small></div><div class="acts"><button data-a="today">Heute</button><button data-a="tomorrow">Morgen</button><button data-a="nextweek">Nächste Woche</button><button data-a="del">Löschen</button></div></div>`;
+  showSheet(`<h2>☀ Tagesplanung</h2><div class="sub" style="margin:-8px 0 12px">Entscheide kurz bei jeder Aufgabe: heute, später oder weg.</div>
+    ${over.length ? `<div class="gh late"><span>Liegen geblieben</span><span>${over.length}</span></div>${over.map(r).join('')}` : ''}
+    ${inbox.length ? `<div class="gh"><span>Eingang ohne Datum</span><span>${inbox.length}</span></div>${inbox.map(r).join('')}` : ''}
+    ${!over.length && !inbox.length ? '<div class="empty"><b>Alles sortiert</b>Nichts liegt herum.</div>' : ''}
+    <div class="srow"><button class="pri" data-sa="triagedone">Fertig</button></div>`);
+  S.lastTriage = td; save();
+}
+function settings() {
+  const perm = 'Notification' in window ? Notification.permission : 'nicht unterstützt';
+  showSheet(`<h2>Einstellungen</h2>
+    <label class="field"><span>Erinnerungen (laufen, solange die App geöffnet ist)</span><select data-s="notify"><option value="0" ${!S.settings.notify ? 'selected' : ''}>Aus</option><option value="1" ${S.settings.notify ? 'selected' : ''}>An (Systemstatus: ${perm})</option></select></label>
+    <label class="field"><span>Vorlauf</span><select data-s="lead">${[0, 10, 30, 60].map(m => `<option value="${m}" ${S.settings.lead === m ? 'selected' : ''}>${m ? m + ' Minuten vorher' : 'Zur Uhrzeit'}</option>`).join('')}</select></label>
+    <label class="field"><span>Tagesplanung beim ersten Öffnen am Tag</span><select data-s="triage"><option value="1" ${S.settings.triage ? 'selected' : ''}>An</option><option value="0" ${!S.settings.triage ? 'selected' : ''}>Aus</option></select></label>
+    <div class="gh"><span>Projekte</span></div>
+    ${S.projects.map(p => `<div class="hrow"><span><span class="dot" style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${p.color};margin-right:8px"></span>${esc(p.name)}</span>${p.fixed ? '<small>fest</small>' : `<span class="acts" style="opacity:1"><button data-pa="rename:${p.id}">Umbenennen</button><button data-pa="delete:${p.id}">Löschen</button></span>`}</div>`).join('')}
+    <div class="gh"><span>Daten (nur auf diesem Gerät)</span></div>
+    <div class="srow"><button data-sa="export">Sichern</button><button data-sa="import">Einlesen</button></div>
+    <div class="hrow"><small>Google-Abgleich zwischen PC und Handy folgt im nächsten Schritt.</small></div>
+    <div class="srow"><button class="pri" data-sa="close">Fertig</button></div>`);
+}
+function newProject() {
+  const name = (prompt('Name des Projekts?') || '').trim(); if (!name) return;
+  const p = { id: uid(), name, color: COLORS[S.projects.length % COLORS.length] }; S.projects.push(p); save(); V = { name: 'project', project: p.id, q: '' }; render();
+}
+
+/* ---------- Ereignisse ---------- */
+document.addEventListener('click', e => {
+  const go = e.target.closest('[data-go]');
+  if (go) { const [n, p] = go.dataset.go.split(':'); V = { name: n, project: p || null, q: '' }; render(); window.scrollTo(0, 0); return; }
+  const sa = e.target.closest('[data-sa]');
+  if (sa) {
+    const a = sa.dataset.sa, id = $('#overlay').dataset.id;
+    if (a === 'close' || a === 'triagedone') closeSheet();
+    if (a === 'delete') { const snap = snapshot(); S.tasks = S.tasks.filter(t => t.id !== id); save(); closeSheet(); toast('Gelöscht', () => restore(snap)); }
+    if (a === 'export') { const b = new Blob([JSON.stringify(S, null, 1)], { type: 'application/json' }), u = URL.createObjectURL(b), l = document.createElement('a'); l.href = u; l.download = `aufgaben-${today()}.json`; l.click(); setTimeout(() => URL.revokeObjectURL(u), 1000); }
+    if (a === 'import') { const i = document.createElement('input'); i.type = 'file'; i.accept = '.json'; i.onchange = () => { const f = i.files[0]; if (!f) return; f.text().then(x => { try { const d = JSON.parse(x); if (!d.tasks || !d.projects) throw 0; if (confirm('Aktuelle Daten durch diese Sicherung ersetzen?')) { S = d; S.settings = { ...fresh().settings, ...S.settings }; save(); closeSheet(); } } catch (err) { alert('Datei nicht lesbar.'); } }); }; i.click(); }
+    return;
+  }
+  const pa = e.target.closest('[data-pa]');
+  if (pa) { const [a, id] = pa.dataset.pa.split(':'), p = proj(id);
+    if (a === 'rename') { const n = (prompt('Neuer Name?', p.name) || '').trim(); if (n) { p.name = n; save(); settings(); } }
+    if (a === 'delete' && confirm(`Projekt „${p.name}“ löschen? Die Aufgaben wandern in den Eingang.`)) { S.tasks.forEach(t => { if (t.project === id) t.project = 'inbox'; }); S.projects = S.projects.filter(x => x.id !== id); if (V.project === id) V = { name: 'today', project: null, q: '' }; save(); settings(); }
+    return; }
+  const q = e.target.closest('[data-q]');
+  if (q) { const t = taskById($('#overlay').dataset.id), k = q.dataset.q; if (k === 'today') t.due = today(); if (k === 'tomorrow') t.due = addDays(today(), 1); if (k === 'monday') t.due = nextWeekday(today(), 1); if (k === 'none') { t.due = null; t.time = null; } if (k === 'star') t.star = !t.star; t.notified = false; save(); openTask(t.id); return; }
+  if (e.target.id === 'overlay') { closeSheet(); return; }
+  const a = e.target.closest('[data-a]'); if (!a) return;
+  const act = a.dataset.a, rowEl = a.closest('[data-id]'), t = rowEl && taskById(rowEl.dataset.id);
+  if (act === 'newproject') return newProject();
+  if (act === 'settings') return settings();
+  if (act === 'triage') return triage();
+  if (!t) return;
+  const inTriage = !!a.closest('.sheet');
+  if (act === 'done') setDone(t, !t.done);
+  if (act === 'star') { t.star = !t.star; save(); render(); }
+  if (act === 'open') openTask(t.id);
+  if (act === 'today') { move(t, today(), 'Auf heute gesetzt'); if (inTriage) triage(); }
+  if (act === 'tomorrow') { move(t, addDays(today(), 1), 'Auf morgen verschoben'); if (inTriage) triage(); }
+  if (act === 'nextweek') { move(t, nextWeekday(today(), 1), 'Auf Montag verschoben'); if (inTriage) triage(); }
+  if (act === 'del') { const snap = snapshot(); S.tasks = S.tasks.filter(x => x.id !== t.id); save(); render(); toast('Gelöscht', () => restore(snap)); triage(); }
+});
+document.addEventListener('input', e => {
+  if (e.target.id === 'qa' || e.target.id === 'qm') return updChips(e.target);
+  if (e.target.id === 'sq') { const v = e.target.value; if (v.trim()) { V = { name: 'search', project: null, q: v }; } else V = { name: 'today', project: null, q: '' }; const pos = v.length; render(); const s = $('#sq'); s.focus(); s.setSelectionRange(pos, pos); return; }
+  const f = e.target.dataset.f; if (f) { const t = taskById($('#overlay').dataset.id); if (!t) return; let v = e.target.value; if (f === 'due' || f === 'time') v = v || null; if (f === 'repeat') v = v || null; if (f === 'title' && !v.trim()) return; t[f] = v; if (f === 'due' || f === 'time') t.notified = false; save(); }
+});
+document.addEventListener('change', e => {
+  const s = e.target.dataset.s;
+  if (s) { if (s === 'notify') { S.settings.notify = e.target.value === '1'; if (S.settings.notify && 'Notification' in window && Notification.permission === 'default') Notification.requestPermission().then(settings); } if (s === 'lead') S.settings.lead = +e.target.value; if (s === 'triage') S.settings.triage = e.target.value === '1'; save(); }
+});
+document.addEventListener('submit', e => {
+  if (!e.target.matches('[data-cap]')) return; e.preventDefault();
+  const i = e.target.querySelector('input'); if (addTask(i.value)) { i.value = ''; updChips(i); if ($('#overlay').classList.contains('on')) closeSheet(); }
+});
+$('#fab').onclick = () => { showSheet(`<h2>Neue Aufgabe</h2>${capHTML('qm')}<div class="hint" style="color:var(--muted)">Tipp: #Projekt, morgen, Freitag, 14:30, * für Markieren</div>`); setTimeout(() => $('#qm') && $('#qm').focus(), 50); };
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && $('#overlay').classList.contains('on')) closeSheet();
+  const tag = (document.activeElement || {}).tagName;
+  if ((e.key === 'n' || e.key === '/') && !['INPUT', 'TEXTAREA', 'SELECT'].includes(tag)) { const q = $('#qa'); if (q) { e.preventDefault(); q.focus(); } }
+});
+
+/* ---------- Erinnerungen ---------- */
+function checkReminders() {
+  if (!S.settings.notify) return;
+  const now = Date.now(), td = today();
+  open().forEach(t => {
+    if (t.notified || !t.time || !t.due || t.due !== td) return;
+    const [h, m] = t.time.split(':'), at = new Date(); at.setHours(+h, +m - S.settings.lead, 0, 0);
+    if (now >= at.getTime() && now - at.getTime() < 6 * 36e5) {
+      t.notified = true; save();
+      const body = `${t.time} Uhr · ${proj(t.project).name}`;
+      if ('Notification' in window && Notification.permission === 'granted') {
+        navigator.serviceWorker && navigator.serviceWorker.ready ? navigator.serviceWorker.ready.then(r => r.showNotification(t.title, { body, tag: t.id, icon: 'icon-192.png' })) : new Notification(t.title, { body });
+      }
+      toast('🔔 ' + t.title + ' · ' + t.time);
+    }
+  });
+}
+setInterval(checkReminders, 30000);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) { render(); checkReminders(); } });
+
+/* ---------- Start ---------- */
+if ('serviceWorker' in navigator && !DEMO && location.protocol !== 'file:') navigator.serviceWorker.register('sw.js').catch(() => {});
+render(); checkReminders();
+if (params.has('triage') || (!DEMO && S.settings.triage && S.lastTriage !== today() && (open().some(isOver)))) setTimeout(triage, 300);
+else if (!DEMO && S.lastTriage !== today()) { S.lastTriage = today(); save(); }
+window.__app = { get S() { return S; }, parseQuick, addTask, render };
+})();
+</script>
+</body>
+</html>

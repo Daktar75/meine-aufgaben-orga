@@ -61,3 +61,19 @@ Eine kleine Web-App, die auf **dieselben Google-Tasks-Daten** zugreift, nur mit 
 Weil alles in Google Tasks gespeichert bleibt, funktionieren die Google-App und ihre Erinnerungen parallel weiter. Fällt das Cockpit mal aus, geht nichts verloren.
 
 Entwurf: [`entwurf/cockpit-entwurf.html`](entwurf/cockpit-entwurf.html) · Screenshot: [`entwurf/cockpit-entwurf.png`](entwurf/cockpit-entwurf.png)
+
+---
+
+## Stand der App (`docs/`)
+
+**Release 1 – fertig, läuft lokal im Browser (PWA, installierbar):**
+- Ansichten: Heute (Liegen geblieben · Top heute · Wenn Zeit bleibt · Erledigt heute), Markiert, Geplant, Erledigt, je Projekt, Suche
+- Schnell-Erfassung per Text: `Angebot schicken #KundeB morgen 15:00 *` setzt Projekt, Datum, Uhrzeit und Stern
+- Tagesplanung beim ersten Öffnen am Tag: Liegengebliebenes und Eingang mit einem Klick auf heute, morgen, nächste Woche oder löschen
+- Wiederholungen (täglich, werktags, wöchentlich, monatlich), Notizen, Rückgängig nach jeder Aktion
+- Erinnerungen zur Uhrzeit (solange die App geöffnet ist), Sicherung/Wiederherstellung als Datei
+- Handy: Tab-Leiste, großer Plus-Knopf, Eingabe als Bottom-Sheet
+
+**Release 2 – Abgleich PC ↔ Handy über das Google-Konto** (Entscheidung offen, siehe Chat)
+
+**Release 3 – Optionen:** Erinnerungen auch bei geschlossener App über den Google Kalender; Import der bestehenden Google-Tasks-Listen

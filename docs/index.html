@@ -570,7 +570,7 @@ setInterval(checkReminders, 30000);
 document.addEventListener('visibilitychange', () => { if (!document.hidden) { render(); checkReminders(); } });
 
 /* ---------- Google-Abgleich (privater App-Speicher in Google Drive) ---------- */
-const GOOGLE_CLIENT_ID = '';   // wird nach der Google-Einrichtung hier eingetragen (oder in den Einstellungen)
+const GOOGLE_CLIENT_ID = '486578759977-2jd0qp36gt538qbpq833fl26l1mjeeiv.apps.googleusercontent.com';   // öffentliche Client-ID, kein Geheimnis
 const SCOPE = 'https://www.googleapis.com/auth/drive.appdata';
 const lsGet = k => { try { return localStorage.getItem(k) || ''; } catch (e) { return ''; } };
 const lsSet = (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} };

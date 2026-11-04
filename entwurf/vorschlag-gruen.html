@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Aufgaben Vorschlag Grün</title>
+<style>
+:root{
+--bg:#f4efe3;--surface:#fffdf8;--side:#f7f2e6;--line:#e6dfcd;--line-strong:#cfc6ae;
+--text:#26302a;--muted:#7a7a6c;--accent:#1f5a3f;--accent-soft:#e0ebe1;--danger:#a8432a;--ok:#1f5a3f;--star:#c58a1b;--tagbg:#f1ecdd;--phone:#2b2f2b;
+--p0:#a8a28c;--p1:#1f5a3f;--p2:#6e8f6a;--p3:#a8432a;--p4:#b99a52;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--text);background:var(--bg);padding:32px 20px;font-size:15px;line-height:1.35}
+.wrap{max-width:1180px;margin:0 auto;display:flex;gap:40px;align-items:flex-start;flex-wrap:wrap}
+.desk{flex:1 1 760px;min-width:0;background:var(--surface);border:1px solid var(--line);border-radius:12px;display:grid;grid-template-columns:210px 1fr;overflow:hidden}
+.side{background:var(--side);border-right:1px solid var(--line);padding:20px 12px}
+.brand{font-weight:650;font-size:15px;padding:0 10px 16px;color:var(--accent)}
+.nav{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;color:var(--text)}
+.nav.on{background:var(--accent-soft);color:var(--accent);font-weight:600}
+.nav .dot{width:9px;height:9px;border-radius:50%;background:var(--c)}
+.nav .n{margin-left:auto;color:var(--muted);font-size:13px;font-variant-numeric:tabular-nums}
+.nav .n.warn{color:var(--danger);font-weight:600}
+.sep{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);padding:16px 10px 6px}
+.main{padding:24px 28px 28px}
+.top{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;margin-bottom:18px}
+h1{font-size:24px;margin:0;font-weight:650}
+.sub{color:var(--muted);font-size:14px;margin-top:2px}
+.add{display:flex;align-items:center;gap:10px;border:1px solid var(--line-strong);border-radius:8px;padding:10px 14px;background:var(--surface);color:var(--muted);flex:1;max-width:400px;min-width:240px}
+.add b{color:var(--text);font-weight:500}
+.plus{color:var(--accent);font-size:20px;line-height:1}
+.group{margin-top:22px}
+.ghead{display:flex;align-items:baseline;gap:8px;font-size:13px;font-weight:650;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;padding-bottom:8px;border-bottom:1px solid var(--line)}
+.ghead.late{color:var(--danger)}
+.ghead .c{font-weight:500}
+.row{display:flex;align-items:center;gap:14px;padding:13px 4px;border-bottom:1px solid var(--line)}
+.chk{width:22px;height:22px;border:2px solid var(--line-strong);border-radius:50%;flex:none}
+.done .chk{background:var(--ok);border-color:var(--ok);position:relative}
+.done .chk:after{content:"";position:absolute;left:6px;top:2px;width:6px;height:11px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg)}
+.done .t{text-decoration:line-through;color:var(--muted)}
+.t{flex:1;min-width:0}
+.t small{display:block;color:var(--muted);font-size:12.5px;margin-top:1px}
+.t small.late{color:var(--danger)}
+.star{color:var(--star);font-size:18px;flex:none}
+.star.off{color:var(--line-strong)}
+.tag{font-size:12px;padding:3px 9px;border-radius:6px;background:var(--tagbg);color:var(--text);white-space:nowrap;display:inline-flex;align-items:center;gap:6px}
+.tag i{width:8px;height:8px;border-radius:50%;background:var(--c);display:block}
+.acts{display:flex;gap:6px}
+.acts span{font-size:12.5px;padding:4px 10px;border:1px solid var(--line-strong);border-radius:6px;color:var(--accent);white-space:nowrap;background:var(--surface)}
+.phone{flex:0 0 310px;border:9px solid var(--phone);border-radius:38px;background:var(--surface);overflow:hidden;position:relative;box-shadow:0 10px 30px rgba(0,0,0,.12)}
+.phone .bar{height:26px;display:flex;justify-content:center;align-items:flex-end}
+.phone .bar i{width:84px;height:18px;background:var(--phone);border-radius:0 0 12px 12px;display:block}
+.pin{padding:6px 16px 90px}
+.pin h1{font-size:21px}
+.pin .row{padding:12px 0}
+.pin .ghead{margin-top:2px}
+.fab{position:absolute;right:16px;bottom:62px;width:54px;height:54px;border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;font-size:30px;box-shadow:0 4px 12px rgba(0,0,0,.25)}
+.tabs{position:absolute;left:0;right:0;bottom:0;height:52px;background:var(--side);border-top:1px solid var(--line);display:flex;justify-content:space-around;align-items:center;font-size:12px;color:var(--muted)}
+.tabs .on{color:var(--accent);font-weight:650}
+.cap{text-align:center;color:var(--muted);font-size:13px;margin-top:14px}
+@media(max-width:820px){.desk{grid-template-columns:1fr}.side{display:none}.main{padding:18px}.phone{margin:0 auto}}
+
+</style>
+</head>
+<body>
+<div class="wrap">
+ <div class="desk">
+  <aside class="side">
+   <div class="brand">Meine Aufgaben</div>
+   <div class="nav on">Heute<span class="n">9</span></div>
+   <div class="nav">Liegen geblieben<span class="n warn">2</span></div>
+   <div class="nav">Markiert ★<span class="n">3</span></div>
+   <div class="sep">Projekte</div>
+   <div class="nav"><span class="dot" style="--c:var(--p0)"></span>Eingang<span class="n">4</span></div>
+   <div class="nav"><span class="dot" style="--c:var(--p1)"></span>Aufmaß-Tool<span class="n">6</span></div>
+   <div class="nav"><span class="dot" style="--c:var(--p2)"></span>Alpha<span class="n">7</span></div>
+   <div class="nav"><span class="dot" style="--c:var(--p3)"></span>Kunde B<span class="n">5</span></div>
+   <div class="nav"><span class="dot" style="--c:var(--p4)"></span>Orga<span class="n">2</span></div>
+  </aside>
+  <section class="main">
+   <div class="top">
+    <div><h1>Heute</h1><div class="sub">Mittwoch, 4. November</div></div>
+    <div class="add"><span class="plus">＋</span><span>Neue Aufgabe, z. B. <b>Daniel anrufen #Eingang morgen</b></span></div>
+   </div>
+
+   <div class="group">
+    <div class="ghead late">Liegen geblieben <span class="c">· 2</span></div>
+    <div class="row"><div class="chk"></div><div class="t">Rechnung Lieferant prüfen<small class="late">fällig seit gestern</small></div><div class="acts"><span>Heute</span><span>Morgen</span></div><span class="tag"><i style="--c:var(--p2)"></i>Alpha</span></div>
+    <div class="row"><div class="chk"></div><div class="t">Rückruf Herr Meier<small class="late">fällig seit Freitag</small></div><div class="acts"><span>Heute</span><span>Morgen</span></div><span class="tag"><i style="--c:var(--p3)"></i>Kunde B</span></div>
+   </div>
+
+   <div class="group">
+    <div class="ghead">Heute <span class="c">· 7</span></div>
+    <div class="row"><span class="star">★</span><div class="chk"></div><div class="t">S+H anrufen: Steckdosen, FI ist rausgegangen<small>bis 12:00</small></div><span class="tag"><i style="--c:var(--p0)"></i>Eingang</span></div>
+    <div class="row"><span class="star">★</span><div class="chk"></div><div class="t">Firmen-Fiat: Scheibe tauschen, Versicherung</div><span class="tag"><i style="--c:var(--p0)"></i>Eingang</span></div>
+    <div class="row"><span class="star">★</span><div class="chk"></div><div class="t">Daniel anrufen: Rabatt Barth, KA 4431</div><span class="tag"><i style="--c:var(--p0)"></i>Eingang</span></div>
+    <div class="row"><span class="star off">☆</span><div class="chk"></div><div class="t">Javier: Glasinfo</div><span class="tag"><i style="--c:var(--p0)"></i>Eingang</span></div>
+    <div class="row"><span class="star off">☆</span><div class="chk"></div><div class="t">Andreas: Montage Sylt</div><span class="tag"><i style="--c:var(--p0)"></i>Eingang</span></div>
+    <div class="row done"><span class="star off">☆</span><div class="chk"></div><div class="t">Reisekosten einreichen</div><span class="tag"><i style="--c:var(--p4)"></i>Orga</span></div>
+    <div class="row done"><span class="star off">☆</span><div class="chk"></div><div class="t">Protokoll Jour fixe verschicken</div><span class="tag"><i style="--c:var(--p2)"></i>Alpha</span></div>
+   </div>
+  </section>
+ </div>
+
+ <div>
+  <div class="phone">
+   <div class="bar"><i></i></div>
+   <div class="pin">
+    <h1>Heute</h1><div class="sub" style="margin-bottom:10px">Mi, 4. November</div>
+    <div class="ghead late">Liegen geblieben <span class="c">· 2</span></div>
+    <div class="row"><div class="chk"></div><div class="t">Rechnung Lieferant prüfen<small class="late">seit gestern</small></div></div>
+    <div class="row"><div class="chk"></div><div class="t">Rückruf Herr Meier<small class="late">seit Freitag</small></div></div>
+    <div class="ghead" style="margin-top:18px">Heute <span class="c">· 7</span></div>
+    <div class="row"><span class="star">★</span><div class="chk"></div><div class="t">S+H anrufen<small>Eingang</small></div></div>
+    <div class="row"><span class="star">★</span><div class="chk"></div><div class="t">Firmen-Fiat: Scheibe<small>Eingang</small></div></div>
+    <div class="row"><span class="star">★</span><div class="chk"></div><div class="t">Daniel anrufen<small>Eingang</small></div></div>
+    <div class="row"><span class="star off">☆</span><div class="chk"></div><div class="t">Javier: Glasinfo<small>Eingang</small></div></div>
+   </div>
+   <div class="fab">+</div>
+   <div class="tabs"><span class="on">Heute</span><span>Projekte</span><span>Markiert</span></div>
+  </div>
+  <div class="cap">Handy-Ansicht</div>
+ </div>
+</div>
+</body>
+</html>

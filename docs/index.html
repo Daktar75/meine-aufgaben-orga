@@ -122,7 +122,15 @@ h1{font-size:28px;margin:0;font-weight:700;letter-spacing:-.02em}
 .tr{display:flex;align-items:center;gap:10px;padding:10px 4px;border-top:1px solid var(--line)}
 .tr:first-of-type{border-top:0}
 .tr .t{cursor:default}
+.tr{flex-wrap:wrap}
+.tr .t{flex:1 1 220px;min-width:0}
 .tr .acts{opacity:1;flex-wrap:wrap;justify-content:flex-end}
+.cap .mic{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:rgba(255,255,255,.08);color:var(--muted);flex:0 0 auto}
+.cap .mic.on{background:var(--red);color:#fff;animation:pulse 1.2s infinite}
+@keyframes pulse{50%{opacity:.6}}
+.morecap{display:block;margin:10px auto 0;font-size:13px;color:#c4b5fd;padding:6px 10px}
+.bulk textarea{min-height:180px;font-size:15px;line-height:1.5}
+.bulkprev{font-size:13px;color:var(--muted);margin:-4px 0 10px}
 .hrow{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-top:1px solid var(--line);gap:10px}
 .hrow small{color:var(--muted);display:block}
 #toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#2a2150;border:1px solid var(--line);border-radius:14px;padding:10px 14px;display:none;align-items:center;gap:14px;z-index:60;box-shadow:0 10px 30px rgba(0,0,0,.5);max-width:92vw}
@@ -141,6 +149,8 @@ h1{font-size:28px;margin:0;font-weight:700;letter-spacing:-.02em}
  .row .t{flex:1 1 120px;min-width:0}
  .row.over .acts{order:9;flex-basis:100%;padding-left:36px}
  .row.over .acts button{padding:6px 14px}
+ .tr .acts{flex-basis:100%;display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+ .tr .acts button{padding:9px 4px;font-size:13px;white-space:normal;line-height:1.15}
  .capwrap.desk,.search,.tools .hide-m{display:none}
  .acts{opacity:1}
  .row:not(.over) .acts{display:none}
@@ -268,11 +278,15 @@ let V = { name: 'today', project: null, q: '' };
 
 /* ---------- Schnell-Erfassung ---------- */
 const WD_FULL = { sonntag: 0, montag: 1, dienstag: 2, mittwoch: 3, donnerstag: 4, freitag: 5, samstag: 6 };
+const NUMW = { einem: 1, einer: 1, eins: 1, zwei: 2, drei: 3, vier: 4, 'fünf': 5, sechs: 6, sieben: 7, acht: 8, neun: 9, zehn: 10 };
+const MONTHS = ['januar', 'februar', 'märz', 'april', 'mai', 'juni', 'juli', 'august', 'september', 'oktober', 'november', 'dezember'];
 const WD_SHORT = { so: 0, mo: 1, di: 2, mi: 3, do: 4, fr: 5, sa: 6 };
 function parseQuick(text) {
+  text = text.replace(/\bhashtag\s+/gi, '#').replace(/\b(\d{1,2})[.:](\d{2})\s*uhr\b/gi, '$1:$2').replace(/\b(\d{1,2})\s*uhr\s+(\d{1,2})\b/gi, '$1:$2')
+    .replace(/\bin\s+(einem|einer|eins|zwei|drei|vier|fünf|sechs|sieben|acht|neun|zehn)\s+(tag|tagen|woche|wochen)\b/gi, (m, w, u) => 'in ' + NUMW[w.toLowerCase()] + ' ' + u);
   let s = ' ' + text + ' ', o = { title: '', project: null, newProject: null, due: null, time: null, star: false, repeat: null };
   const cut = (re, fn) => { const m = s.match(re); if (m) { s = s.replace(re, ' '); fn && fn(m); } return !!m; };
-  cut(/(^|\s)(?:[*!★])(?=\s)/, () => o.star = true);
+  cut(/(^|\s)(?:[*!★])(?=\s)/, () => o.star = true) || cut(/\s(?:wichtig|markieren|mit stern)\s*$/i, () => o.star = true);
   // Projektname mit Leerzeichen (z. B. "#Kunde B") zuerst, längste Namen vorn
   const named = [...S.projects].sort((a, b) => b.name.length - a.name.length).find(p => {
     const re = new RegExp('(^|\\s)#' + p.name.trim().split(/\s+/).map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('\\s+') + '(?=\\s|$)', 'iu');
@@ -295,11 +309,16 @@ function parseQuick(text) {
     else if (cut(/\bheute\b/i, () => o.due = t0)) {}
     else if (cut(/\bn(?:ä|ae)chste\s+woche\b/i, () => o.due = nextWeekday(t0, 1))) {}
     else if (cut(/\bin\s+(\d{1,3})\s+tag(?:en)?\b/i, m => o.due = addDays(t0, +m[1]))) {}
+    else if (cut(/\bin\s+(\d{1,2})\s+woche(?:n)?\b/i, m => o.due = addDays(t0, 7 * m[1]))) {}
+    else if (cut(/(?:^|\s)(?:am\s+)?(\d{1,2})\.?\s+(januar|februar|märz|maerz|april|mai|juni|juli|august|september|oktober|november|dezember)(?:\s+(\d{4}))?(?=\s|$)/i, m => {
+      const mo = MONTHS.indexOf(m[2].toLowerCase().replace('maerz', 'märz')) + 1, d = +m[1]; let y = m[3] ? +m[3] : new Date().getFullYear();
+      if (d >= 1 && d <= 31) { let c = `${y}-${pad(mo)}-${pad(d)}`; if (!m[3] && c < t0) c = `${y + 1}-${pad(mo)}-${pad(d)}`; o.due = c; }
+    })) {}
     else if (cut(/(^|\s)(\d{1,2})\.(\d{1,2})\.?(\d{2,4})?(?=\s|$)/, m => {
       const d = +m[2], mo = +m[3]; let y = m[4] ? +m[4] : new Date().getFullYear(); if (y < 100) y += 2000;
       if (mo >= 1 && mo <= 12 && d >= 1 && d <= 31) { let c = `${y}-${pad(mo)}-${pad(d)}`; if (!m[4] && c < t0) c = `${y + 1}-${pad(mo)}-${pad(d)}`; o.due = c; }
     })) {}
-    else if (cut(/\b(montag|dienstag|mittwoch|donnerstag|freitag|samstag|sonntag)\b/i, m => o.due = nextWeekday(t0, WD_FULL[m[1].toLowerCase()]))) {}
+    else if (cut(/\b(?:(?:am|diesen|nächsten|naechsten|kommenden)\s+)?(montag|dienstag|mittwoch|donnerstag|freitag|samstag|sonntag)\b/i, m => o.due = nextWeekday(t0, WD_FULL[m[1].toLowerCase()]))) {}
     else cut(/\bam\s+(mo|di|mi|do|fr|sa|so)\b/i, m => o.due = nextWeekday(t0, WD_SHORT[m[1].toLowerCase()]));
   }
   if (!cut(/\b(?:um\s+)?(\d{1,2}):(\d{2})(?:\s*uhr)?\b/i, m => { if (+m[1] < 24 && +m[2] < 60) o.time = `${pad(+m[1])}:${m[2]}`; }))
@@ -410,8 +429,22 @@ function counts() {
   const td = today(), op = open();
   return { today: op.filter(t => t.due && t.due <= td).length, over: op.filter(isOver).length, starred: op.filter(t => t.star).length, upcoming: op.filter(t => t.due && t.due > td).length };
 }
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+const MIC = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>';
+let rec = null;
+function dictate(btn) {
+  if (rec) { rec.stop(); return; }
+  const input = btn.closest('form').querySelector('input');
+  try { rec = new SR(); } catch (e) { toast('Spracheingabe geht hier nicht. Nutze das Mikrofon der Tastatur.'); return; }
+  rec.lang = 'de-DE'; rec.interimResults = true; rec.continuous = false;
+  const before = input.value.trim();
+  rec.onresult = e => { const txt = [...e.results].map(r => r[0].transcript).join(' '); input.value = (before ? before + ' ' : '') + txt; updChips(input); };
+  rec.onerror = e => { if (e.error === 'not-allowed' || e.error === 'service-not-allowed') toast('Mikrofon nicht erlaubt. Alternativ das Mikrofon der Tastatur nutzen.'); };
+  rec.onend = () => { rec = null; btn.classList.remove('on'); input.focus(); };
+  btn.classList.add('on'); rec.start();
+}
 function capHTML(id) {
-  return `<form class="cap" data-cap><span class="plus">＋</span><input id="${id}" autocomplete="off" enterkeyhint="done" placeholder="Neue Aufgabe, z. B. Angebot schicken #KundeB morgen 15:00 *"><button class="go" type="submit">Hinzufügen</button></form><div class="chips" data-chips></div>`;
+  return `<form class="cap" data-cap><span class="plus">＋</span><input id="${id}" autocomplete="off" enterkeyhint="done" placeholder="Neue Aufgabe, z. B. Angebot schicken #KundeB morgen 15:00 *">${SR ? `<button class="mic" type="button" data-mic aria-label="Einsprechen">${MIC}</button>` : ''}<button class="go" type="submit">Hinzufügen</button></form><div class="chips" data-chips></div>`;
 }
 const SYNC_TXT = { ok: '☁ ✓', busy: '☁ …', auth: '☁ tippen', err: '☁ ✕', off: '' };
 function render() {
@@ -428,7 +461,7 @@ function render() {
   const keepQ = ($('#qa') || {}).value || '', hadFocus = document.activeElement && document.activeElement.id === 'qa';
   $('#main').innerHTML = `<div class="head"><div><h1>${esc(v.title)}</h1>${v.sub ? `<div class="sub">${v.sub}</div>` : ''}</div>
     <div class="tools">${v.filterable ? `<select class="pill fsel ${V.filter ? 'act' : ''}" id="fsel" aria-label="Projektfilter"><option value="">Alle Projekte</option>${S.projects.map(p => `<option value="${p.id}" ${V.filter === p.id ? 'selected' : ''}>${esc(p.name)}</option>`).join('')}</select>` : ''}<input class="search" id="sq" placeholder="Suchen …" value="${V.name === 'search' ? esc(V.q) : ''}">${S.settings.sync ? `<button class="pill" id="syncpill" data-a="sync" aria-label="Google-Abgleich">${SYNC_TXT[G.status] || ''}</button>` : ''}<button class="pill" data-a="settings" aria-label="Einstellungen">${ico('gear')}</button></div><svg class="logo" aria-label="Meine Aufgaben"><use href="#logo"/></svg></div>
-    ${v.cap ? `<div class="capwrap desk">${capHTML('qa')}</div>` : ''}${v.html}`;
+    ${v.cap ? `<div class="capwrap desk">${capHTML('qa')}<button class="morecap" style="margin:6px 0 0" data-a="bulk">Mehrere auf einmal einfügen</button></div>` : ''}${v.html}`;
   if (v.cap && $('#qa')) { $('#qa').value = keepQ; updChips($('#qa')); if (hadFocus && !isMobile()) $('#qa').focus(); }
   const tab = (name, ic, label, badge) => `<button class="${V.name === name || (name === 'projects' && V.name === 'project') ? 'on' : ''}" data-go="${name}">${ic}${label}${badge ? `<span class="badge">${badge}</span>` : ''}</button>`;
   $('#tabs').innerHTML = tab('today', ico('today'), 'Heute', c.over) + tab('starred', ico('star'), 'Markiert') + tab('upcoming', ico('cal'), 'Geplant') + tab('projects', ico('folder'), 'Projekte') + `<button data-a="settings">${ico('gear')}Mehr</button>`;
@@ -470,18 +503,38 @@ function setDone(t, val) {
 function move(t, due, label) {
   const snap = snapshot(); t.due = due; t.notified = false; save(); render(); toast(label, () => restore(snap));
 }
-function addTask(text, ctx) {
-  const o = parseQuick(text); if (!o.title) return false;
+function createTask(text) {
+  const o = parseQuick(text); if (!o.title) return null;
   let pid = o.project;
   if (!pid && o.newProject) { const p = { id: uid(), name: o.newProject.replace(/[_-]+/g, ' '), color: COLORS[S.projects.length % COLORS.length] }; S.projects.push(p); pid = p.id; }
   if (!pid) pid = V.name === 'project' ? V.project : (['today', 'starred', 'upcoming'].includes(V.name) && V.filter) || 'inbox';
   let due = o.due; if (!due && V.name === 'today') due = today();
   const t = { id: uid(), title: o.title, notes: '', project: pid, due, time: o.time, star: o.star || V.name === 'starred', done: false, doneAt: null, created: Date.now(), repeat: o.repeat, notified: false };
-  const snap = snapshot(); S.tasks.push(t); save(); render();
+  S.tasks.push(t); return t;
+}
+function addTask(text) {
+  const snap = snapshot(), t = createTask(text); if (!t) return false;
+  save(); render(); const due = t.due, pid = t.project;
   toast('Hinzugefügt' + (due ? ' · ' + dueLabel(t, true) : ' · ' + proj(pid).name), () => restore(snap));
   return true;
 }
 
+const cleanLine = l => l.replace(/^\s*(?:[-–•*·▪◦☐☑✓✔□○]|\d+[.)]|\[\s?[xX]?\])\s+/, '').trim();
+function bulkSheet() {
+  showSheet(`<div class="bulk"><h2>Mehrere Aufgaben</h2>
+    <div class="sub" style="margin:-8px 0 12px">Eine Aufgabe pro Zeile. Datum, Uhrzeit und #Projekt werden wie gewohnt erkannt.</div>
+    <label class="field"><textarea id="bulk" placeholder="Angebot KundeB schicken morgen&#10;Rückruf Schulz Freitag 10:00&#10;Zeugnis vorbereiten"></textarea></label>
+    <div class="bulkprev" id="bulkprev">${isMobile() ? '📷 iPhone: ins Feld tippen, dann <b>Text scannen</b> (Symbol mit Rahmen über der Tastatur oder lange drücken) und die Kamera auf den Zettel halten.' : 'Text einfügen, zum Beispiel aus einer Notiz oder Mail.'}</div>
+    <div class="srow"><button data-sa="close">Abbrechen</button><button class="pri" data-sa="bulkadd">Übernehmen</button></div></div>`);
+  setTimeout(() => $('#bulk') && $('#bulk').focus(), 50);
+}
+function bulkAdd() {
+  const lines = ($('#bulk').value || '').split(/\n+/).map(cleanLine).filter(l => l.length > 1);
+  if (!lines.length) return;
+  const snap = snapshot(); let n = 0;
+  lines.forEach(l => { if (createTask(l)) n++; });
+  save(); closeSheet(); toast(`${n} Aufgaben übernommen`, () => restore(snap));
+}
 function deleteTask(id) {
   if (!taskById(id)) return;
   const snapBefore = snapshot(); S.tasks = S.tasks.filter(x => x.id !== id); save(); render();
@@ -566,7 +619,7 @@ function settings() {
       : `<div class="srow"><button class="pri" data-sa="gconn">Mit Google verbinden</button></div>`}
     ${cid() && S.settings.sync ? `<div class="gh"><span>Erinnerungen über Google Kalender</span></div><label class="field"><span>Aufgaben mit Uhrzeit werden als Termin im privaten Google Kalender angelegt. So klingelt das Handy auch bei geschlossener App.</span><select data-s="cal"><option value="0" ${!S.settings.cal ? 'selected' : ''}>Aus</option><option value="1" ${S.settings.cal ? 'selected' : ''}>An</option></select></label>` : ''}
     ${cid() ? `<div class="gh"><span>Aus Google Tasks übernehmen</span></div><div class="hrow"><small>Einmalig. Kopiert deine offenen Aufgaben, jede Liste wird ein Projekt. Google Tasks bleibt unverändert. Mehrfaches Importieren ist sicher, schon übernommene Aufgaben werden nicht doppelt angelegt.</small></div><div class="srow"><button data-sa="gimport">Jetzt importieren</button></div>` : ''}
-    <div class="hrow"><small>Version 9</small></div>
+    <div class="hrow"><small>Version 10</small></div>
     <div class="srow"><button class="pri" data-sa="close">Fertig</button></div>`);
 }
 function newProject() {
@@ -576,12 +629,14 @@ function newProject() {
 
 /* ---------- Ereignisse ---------- */
 document.addEventListener('click', e => {
+  const mic = e.target.closest('[data-mic]'); if (mic) return dictate(mic);
   const go = e.target.closest('[data-go]');
   if (go) { const [n, p] = go.dataset.go.split(':'); V = { name: n, project: p || null, q: '', filter: V.filter }; render(); window.scrollTo(0, 0); return; }
   const sa = e.target.closest('[data-sa]');
   if (sa) {
     const a = sa.dataset.sa, id = $('#overlay').dataset.id;
     if (a === 'close' || a === 'triagedone') closeSheet();
+    if (a === 'bulkadd') bulkAdd();
     if (a === 'gsave') { const v = (document.querySelector('[data-gid]').value || '').trim(); if (v) { lsSet('aufgaben.gclient', v); loadGis().catch(() => {}); settings(); } }
     if (a === 'gconn') { S.settings.sync = true; save(); G.status = 'busy'; sync(true).then(() => { if ($('#overlay').classList.contains('on')) settings(); render(); }); }
     if (a === 'gimport') importTasks();
@@ -603,6 +658,7 @@ document.addEventListener('click', e => {
   const a = e.target.closest('[data-a]'); if (!a) return;
   const act = a.dataset.a, rowEl = a.closest('[data-id]'), t = rowEl && taskById(rowEl.dataset.id);
   if (act === 'sync') return sync(true);
+  if (act === 'bulk') return bulkSheet();
   if (act === 'del2') return deleteTask(rowEl && rowEl.dataset.id);
   if (act === 'newproject') return newProject();
   if (act === 'settings') return settings();
@@ -635,10 +691,10 @@ document.addEventListener('change', e => {
     save(); }
 });
 document.addEventListener('submit', e => {
-  if (!e.target.matches('[data-cap]')) return; e.preventDefault();
+  if (!e.target.matches('[data-cap]')) return; e.preventDefault(); if (rec) rec.stop();
   const i = e.target.querySelector('input'); if (addTask(i.value)) { i.value = ''; updChips(i); if ($('#overlay').classList.contains('on')) closeSheet(); }
 });
-$('#fab').onclick = () => { showSheet(`<h2>Neue Aufgabe</h2>${capHTML('qm')}<div class="hint" style="color:var(--muted)">Tipp: #Projekt, morgen, Freitag, 14:30, * für Markieren</div>`); setTimeout(() => $('#qm') && $('#qm').focus(), 50); };
+$('#fab').onclick = () => { showSheet(`<h2>Neue Aufgabe</h2>${capHTML('qm')}<div class="hint" style="color:var(--muted)">Tipp: #Projekt, morgen, Freitag, 14:30, * für Markieren${SR ? '. Mit dem Mikrofon einsprechen, z. B. „Rückruf Schulz morgen um 10 Uhr“.' : ''}</div><button class="morecap" data-a="bulk">📷 Zettel abfotografieren oder mehrere auf einmal</button>`); setTimeout(() => $('#qm') && $('#qm').focus(), 50); };
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape' && $('#overlay').classList.contains('on')) closeSheet();
   const tag = (document.activeElement || {}).tagName;
@@ -847,8 +903,9 @@ async function calReconcile() {
 function syncText() { return ({ ok: 'abgeglichen', busy: 'gleicht ab …', auth: 'Anmeldung nötig (einmal tippen)', err: 'Fehler beim Abgleich', off: '' })[G.status] || ''; }
 if (cid()) loadGis().catch(() => {});
 setInterval(() => { if (!document.hidden) sync(false); }, 120000);
-document.addEventListener('pointerdown', () => {
-  if (G.status === 'auth' && !G.busy && S.settings.sync && Date.now() - G.lastTap > 600000) { G.lastTap = Date.now(); sync(true); }
+document.addEventListener('click', e => {
+  if (e.target.closest('[data-a="sync"],[data-sa]')) return;
+  if (G.status === 'auth' && !G.busy && S.settings.sync && Date.now() - G.lastTap > 1800000) { G.lastTap = Date.now(); sync(true); }
 });
 
 /* ---------- Start ---------- */

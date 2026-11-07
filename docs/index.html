@@ -617,9 +617,10 @@ function settings() {
     ${!cid() ? `<label class="field"><span>Client-ID aus der Google-Einrichtung (siehe EINRICHTUNG.md)</span><input data-gid placeholder="1234-abc.apps.googleusercontent.com"></label><div class="srow"><button data-sa="gsave">Speichern</button></div>`
       : S.settings.sync ? `<div class="hrow"><span>Verbunden<small>${syncText()}</small></span></div><div class="srow"><button data-sa="gsync">Jetzt abgleichen</button><button data-sa="gdisc">Trennen</button></div>`
       : `<div class="srow"><button class="pri" data-sa="gconn">Mit Google verbinden</button></div>`}
+    ${cid() && S.settings.sync ? `<div class="gh"><span>Automatisch anmelden</span></div><label class="field"><span>Erneuert die Google-Anmeldung beim Öffnen der App selbst, ohne Tippen. Vorher in Google Cloud die Weiterleitungs-URI eintragen (siehe EINRICHTUNG.md), zuerst am PC einschalten.</span><select data-s="autologin"><option value="0" ${!S.settings.autologin ? 'selected' : ''}>Aus</option><option value="1" ${S.settings.autologin ? 'selected' : ''}>An</option></select></label>` : ''}
     ${cid() && S.settings.sync ? `<div class="gh"><span>Erinnerungen über Google Kalender</span></div><label class="field"><span>Aufgaben mit Uhrzeit werden als Termin im privaten Google Kalender angelegt. So klingelt das Handy auch bei geschlossener App.</span><select data-s="cal"><option value="0" ${!S.settings.cal ? 'selected' : ''}>Aus</option><option value="1" ${S.settings.cal ? 'selected' : ''}>An</option></select></label>` : ''}
     ${cid() ? `<div class="gh"><span>Aus Google Tasks übernehmen</span></div><div class="hrow"><small>Einmalig. Kopiert deine offenen Aufgaben, jede Liste wird ein Projekt. Google Tasks bleibt unverändert. Mehrfaches Importieren ist sicher, schon übernommene Aufgaben werden nicht doppelt angelegt.</small></div><div class="srow"><button data-sa="gimport">Jetzt importieren</button></div>` : ''}
-    <div class="hrow"><small>Version 10</small></div>
+    <div class="hrow"><small>Version 11</small></div>
     <div class="srow"><button class="pri" data-sa="close">Fertig</button></div>`);
 }
 function newProject() {
@@ -682,11 +683,16 @@ document.addEventListener('change', e => {
   if (e.target.id === 'fsel') { V.filter = e.target.value || null; render(); return; }
   const s = e.target.dataset.s;
   if (s) { if (s === 'notify') { S.settings.notify = e.target.value === '1'; if (S.settings.notify && 'Notification' in window && Notification.permission === 'default') Notification.requestPermission().then(settings); } if (s === 'lead') S.settings.lead = +e.target.value; if (s === 'triage') S.settings.triage = e.target.value === '1';
+    if (s === 'autologin') {
+      S.settings.autologin = e.target.value === '1'; save();
+      if (S.settings.autologin) { G.redirErr = null; redirectLogin(false); }
+      return;
+    }
     if (s === 'cal') {
       S.settings.cal = e.target.value === '1';
       if (S.settings.cal) { G.tok = null; lsSet('aufgaben.gtok', ''); G.status = 'busy'; }
       else S.tasks.forEach(t => { if (t.eid) { (S.calDel = S.calDel || []).push(t.eid); t.eid = null; t.csig = null; } });
-      save(); sync(true); return;
+      save(); if (S.settings.cal && autoOn()) { redirectLogin(false); return; } sync(true); return;
     }
     save(); }
 });
@@ -719,7 +725,7 @@ function checkReminders() {
   });
 }
 setInterval(checkReminders, 30000);
-document.addEventListener('visibilitychange', () => { if (!document.hidden) { render(); checkReminders(); } });
+document.addEventListener('visibilitychange', () => { if (!document.hidden) { if (maybeSilent()) return; render(); checkReminders(); } });
 
 /* ---------- Google-Abgleich (privater App-Speicher in Google Drive) ---------- */
 const GOOGLE_CLIENT_ID = '486578759977-2jd0qp36gt538qbpq833fl26l1mjeeiv.apps.googleusercontent.com';   // öffentliche Client-ID, kein Geheimnis
@@ -750,10 +756,29 @@ function requestToken(interactive) {
     c.requestAccessToken();
   });
 }
+/* Automatische Anmeldung: kurze Weiterleitung zu Google statt Pop-up. Mit prompt=none läuft sie ohne Eingabe,
+   solange man bei Google angemeldet ist. Braucht die App-Adresse als Weiterleitungs-URI im OAuth-Client. */
+const REDIR = location.origin + location.pathname.replace(/index\.html$/, '');
+const autoOn = () => !DEMO && S.settings.sync && S.settings.autologin && cid();
+function redirectLogin(silent) {
+  save(); const st = uid(); lsSet('aufgaben.ostate', st); lsSet('aufgaben.silentAt', String(Date.now()));
+  const q = new URLSearchParams({ client_id: cid(), redirect_uri: REDIR, response_type: 'token', scope: scopes(), include_granted_scopes: 'true', state: st });
+  if (silent) q.set('prompt', 'none');
+  const em = lsGet('aufgaben.gmail'); if (em) q.set('login_hint', em);
+  location.href = 'https://accounts.google.com/o/oauth2/v2/auth?' + q;
+}
+function maybeSilent() {
+  if (!autoOn() || !navigator.onLine || G.redirErr) return false;
+  if (G.tok && Date.now() < G.exp - 5 * 60000) return false;
+  if (Date.now() - +(lsGet('aufgaben.silentAt') || 0) < 3 * 60000) return false;
+  if ($('#overlay').classList.contains('on') || (document.activeElement && /INPUT|TEXTAREA/.test(document.activeElement.tagName))) return false;
+  redirectLogin(true); return true;
+}
 // Wichtig: bei interaktiver Anmeldung kein await vor requestAccessToken (sonst blockt der Browser das Fenster)
 function getToken(interactive) {
   if (G.tok && Date.now() < G.exp - 60000) return Promise.resolve(G.tok);
   if (!cid()) return Promise.resolve(null);
+  if (autoOn()) { if (interactive) { G.redirErr = null; redirectLogin(false); return new Promise(() => {}); } return Promise.resolve(null); }
   if (hasGis()) return requestToken(interactive);
   return loadGis().then(() => requestToken(interactive)).catch(() => null);
 }
@@ -816,6 +841,7 @@ async function sync(interactive) {
       }
     }
     setStatus('ok');
+    if (!lsGet('aufgaben.gmail')) dfetch('https://www.googleapis.com/drive/v3/about?fields=user(emailAddress)').then(r => { const m = r && r.user && r.user.emailAddress; if (m) lsSet('aufgaben.gmail', m); }).catch(() => {});
   } catch (e) { setStatus(e.code === 401 ? 'auth' : 'err'); }
   finally { G.busy = false; if (G.again) { G.again = false; setTimeout(() => sync(false), 500); } }
 }
@@ -902,18 +928,26 @@ async function calReconcile() {
 }
 function syncText() { return ({ ok: 'abgeglichen', busy: 'gleicht ab …', auth: 'Anmeldung nötig (einmal tippen)', err: 'Fehler beim Abgleich', off: '' })[G.status] || ''; }
 if (cid()) loadGis().catch(() => {});
-setInterval(() => { if (!document.hidden) sync(false); }, 120000);
+setInterval(() => { if (!document.hidden && !maybeSilent()) sync(false); }, 120000);
 document.addEventListener('click', e => {
-  if (e.target.closest('[data-a="sync"],[data-sa]')) return;
+  if (e.target.closest('[data-a="sync"],[data-sa]') || autoOn()) return;
   if (G.status === 'auth' && !G.busy && S.settings.sync && Date.now() - G.lastTap > 1800000) { G.lastTap = Date.now(); sync(true); }
 });
 
 /* ---------- Start ---------- */
 if ('serviceWorker' in navigator && !DEMO && location.protocol !== 'file:') navigator.serviceWorker.register('sw.js').catch(() => {});
 try { const tk = JSON.parse(lsGet('aufgaben.gtok') || 'null'); if (tk && tk.e > Date.now() + 60000) { G.tok = tk.t; G.exp = tk.e; } } catch (e) {}
+if (/[#&]state=/.test(location.hash)) {
+  const h = new URLSearchParams(location.hash.slice(1)); history.replaceState(null, '', location.pathname + location.search);
+  if (h.get('state') && h.get('state') === lsGet('aufgaben.ostate')) {
+    lsSet('aufgaben.ostate', '');
+    if (h.get('access_token')) { G.tok = h.get('access_token'); G.exp = Date.now() + (+h.get('expires_in') || 3600) * 1000; lsSet('aufgaben.gtok', JSON.stringify({ t: G.tok, e: G.exp })); }
+    else G.redirErr = h.get('error') || 'fehler';
+  }
+}
 if (S.settings.sync && !DEMO) G.status = G.tok ? 'busy' : 'auth';
 render(); checkReminders();
-if (S.settings.sync && !DEMO) sync(false);
+if (!maybeSilent() && S.settings.sync && !DEMO) sync(false);
 if (params.has('triage') || (!DEMO && S.settings.triage && S.lastTriage !== today() && (open().some(isOver)))) setTimeout(triage, 300);
 else if (!DEMO && S.lastTriage !== today()) { S.lastTriage = today(); save(); }
 window.__app = { get S() { return S; }, get V() { return V; }, parseQuick, addTask, render, sync, mergeData };

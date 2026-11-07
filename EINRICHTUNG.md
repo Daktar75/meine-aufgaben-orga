@@ -67,3 +67,12 @@ Aufgaben mit Uhrzeit werden als Termin im privaten Google Kalender angelegt (mit
 3. App: **Einstellungen → Erinnerungen über Google Kalender → An**. Google fragt einmal nach der Zustimmung (Erweitert → Weiter → Zulassen).
 4. Aufgabe mit Datum und Uhrzeit anlegen, zum Beispiel `Rückruf Schulz morgen 10:00`. Der Termin erscheint kurz danach im Google Kalender.
 5. Der Vorlauf (zur Uhrzeit, 10, 30 oder 60 Minuten vorher) steht in den Einstellungen unter „Vorlauf“.
+
+## Optional: Automatisch anmelden (ohne stündliches Tippen)
+
+Google lässt die Anmeldung nach etwa einer Stunde ablaufen. Mit dieser Einstellung erneuert die App sie beim Öffnen selbst, über eine kurze Weiterleitung zu Google (der Bildschirm flackert kurz). Nur wenn Google eine neue Zustimmung will (im Status „Test“ etwa einmal pro Woche), steht oben „☁ tippen“.
+
+1. Google Cloud, Projekt „Aufgaben“: **Google Auth Platform → Clients → Aufgaben-App** öffnen.
+2. Unter **Autorisierte Weiterleitungs-URIs → URI hinzufügen**: `https://daktar75.github.io/meine-aufgaben-orga/` (genau so, mit Schrägstrich am Ende). **Speichern**. Google braucht danach manchmal ein paar Minuten.
+3. **Zuerst am PC**: App öffnen → Einstellungen → **Automatisch anmelden → An**. Die App leitet einmal zu Google und kommt zurück. Erscheint stattdessen eine Google-Fehlerseite („redirect_uri_mismatch“), stimmt Schritt 2 noch nicht: zurück zur App, Einstellung wieder auf Aus, URI prüfen.
+4. Klappt es am PC, am Handy dieselbe Einstellung einschalten.

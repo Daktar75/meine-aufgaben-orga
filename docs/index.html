@@ -634,7 +634,7 @@ function settings() {
     ${cid() && S.settings.sync ? `<div class="gh"><span>Automatisch anmelden</span></div><label class="field"><span>Erneuert die Google-Anmeldung beim Öffnen der App selbst, ohne Tippen. Vorher in Google Cloud die Weiterleitungs-URI eintragen (siehe EINRICHTUNG.md), zuerst am PC einschalten.</span><select data-s="autologin"><option value="0" ${!S.settings.autologin ? 'selected' : ''}>Aus</option><option value="1" ${S.settings.autologin ? 'selected' : ''}>An</option></select></label>` : ''}
     ${cid() && S.settings.sync ? `<div class="gh"><span>Erinnerungen über Google Kalender</span></div><label class="field"><span>Aufgaben mit Uhrzeit werden als Termin im privaten Google Kalender angelegt. So klingelt das Handy auch bei geschlossener App.</span><select data-s="cal"><option value="0" ${!S.settings.cal ? 'selected' : ''}>Aus</option><option value="1" ${S.settings.cal ? 'selected' : ''}>An</option></select></label>` : ''}
     ${cid() ? `<div class="gh"><span>Aus Google Tasks übernehmen</span></div><div class="hrow"><small>Einmalig. Kopiert deine offenen Aufgaben, jede Liste wird ein Projekt. Google Tasks bleibt unverändert. Mehrfaches Importieren ist sicher, schon übernommene Aufgaben werden nicht doppelt angelegt.</small></div><div class="srow"><button data-sa="gimport">Jetzt importieren</button></div>` : ''}
-    <div class="hrow"><small>Version 13</small></div>
+    <div class="hrow"><small>Version 14</small></div>
     <div class="srow"><button class="pri" data-sa="close">Fertig</button></div>`);
 }
 function newProject() {

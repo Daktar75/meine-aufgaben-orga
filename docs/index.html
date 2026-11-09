@@ -523,10 +523,10 @@ const cleanLine = l => l.replace(/^\s*(?:[-–•*·▪◦☐☑✓✔□○]|\d
 function bulkSheet() {
   showSheet(`<div class="bulk"><h2>Mehrere Aufgaben</h2>
     <div class="sub" style="margin:-8px 0 12px">Eine Aufgabe pro Zeile. Datum, Uhrzeit und #Projekt werden wie gewohnt erkannt.</div>
-    <label class="field"><textarea id="bulk" placeholder="Angebot KundeB schicken morgen&#10;Rückruf Schulz Freitag 10:00&#10;Zeugnis vorbereiten"></textarea></label>
-    <div class="bulkprev" id="bulkprev">${isMobile() ? '📷 iPhone: ins Feld tippen, dann <b>Text scannen</b> (Symbol mit Rahmen über der Tastatur oder lange drücken) und die Kamera auf den Zettel halten.' : 'Text einfügen, zum Beispiel aus einer Notiz oder Mail.'}</div>
+    <label class="field"><textarea id="bulk" placeholder="Eine Aufgabe pro Zeile …"></textarea></label>
+    <div class="bulkprev" id="bulkprev">${isMobile() ? '📷 <b>So scannst du einen Zettel:</b> ins leere Feld tippen, dann noch einmal tippen. Im kleinen Menü <b>Text scannen</b> wählen (Symbol ⊡ mit Textzeilen), Kamera auf den Zettel halten, <b>Einsetzen</b>.' : 'Text einfügen, zum Beispiel aus einer Notiz oder Mail.'}</div>
     <div class="srow"><button data-sa="close">Abbrechen</button><button class="pri" data-sa="bulkadd">Übernehmen</button></div></div>`);
-  setTimeout(() => $('#bulk') && $('#bulk').focus(), 50);
+  if (!isMobile()) setTimeout(() => $('#bulk') && $('#bulk').focus(), 50);
 }
 function bulkAdd() {
   const lines = ($('#bulk').value || '').split(/\n+/).map(cleanLine).filter(l => l.length > 1);
@@ -620,7 +620,7 @@ function settings() {
     ${cid() && S.settings.sync ? `<div class="gh"><span>Automatisch anmelden</span></div><label class="field"><span>Erneuert die Google-Anmeldung beim Öffnen der App selbst, ohne Tippen. Vorher in Google Cloud die Weiterleitungs-URI eintragen (siehe EINRICHTUNG.md), zuerst am PC einschalten.</span><select data-s="autologin"><option value="0" ${!S.settings.autologin ? 'selected' : ''}>Aus</option><option value="1" ${S.settings.autologin ? 'selected' : ''}>An</option></select></label>` : ''}
     ${cid() && S.settings.sync ? `<div class="gh"><span>Erinnerungen über Google Kalender</span></div><label class="field"><span>Aufgaben mit Uhrzeit werden als Termin im privaten Google Kalender angelegt. So klingelt das Handy auch bei geschlossener App.</span><select data-s="cal"><option value="0" ${!S.settings.cal ? 'selected' : ''}>Aus</option><option value="1" ${S.settings.cal ? 'selected' : ''}>An</option></select></label>` : ''}
     ${cid() ? `<div class="gh"><span>Aus Google Tasks übernehmen</span></div><div class="hrow"><small>Einmalig. Kopiert deine offenen Aufgaben, jede Liste wird ein Projekt. Google Tasks bleibt unverändert. Mehrfaches Importieren ist sicher, schon übernommene Aufgaben werden nicht doppelt angelegt.</small></div><div class="srow"><button data-sa="gimport">Jetzt importieren</button></div>` : ''}
-    <div class="hrow"><small>Version 11</small></div>
+    <div class="hrow"><small>Version 12</small></div>
     <div class="srow"><button class="pri" data-sa="close">Fertig</button></div>`);
 }
 function newProject() {
@@ -700,7 +700,7 @@ document.addEventListener('submit', e => {
   if (!e.target.matches('[data-cap]')) return; e.preventDefault(); if (rec) rec.stop();
   const i = e.target.querySelector('input'); if (addTask(i.value)) { i.value = ''; updChips(i); if ($('#overlay').classList.contains('on')) closeSheet(); }
 });
-$('#fab').onclick = () => { showSheet(`<h2>Neue Aufgabe</h2>${capHTML('qm')}<div class="hint" style="color:var(--muted)">Tipp: #Projekt, morgen, Freitag, 14:30, * für Markieren${SR ? '. Mit dem Mikrofon einsprechen, z. B. „Rückruf Schulz morgen um 10 Uhr“.' : ''}</div><button class="morecap" data-a="bulk">📷 Zettel abfotografieren oder mehrere auf einmal</button>`); setTimeout(() => $('#qm') && $('#qm').focus(), 50); };
+$('#fab').onclick = () => { showSheet(`<h2>Neue Aufgabe</h2>${capHTML('qm')}<div class="hint" style="color:var(--muted)">Tipp: #Projekt, morgen, Freitag, 14:30, * für Markieren${SR ? '. Mit dem Mikrofon einsprechen, z. B. „Rückruf Schulz morgen um 10 Uhr“.' : ''}</div><button class="morecap" data-a="bulk">📷 Zettel abfotografieren oder mehrere auf einmal</button>`); if (!isMobile()) setTimeout(() => $('#qm') && $('#qm').focus(), 50); };
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape' && $('#overlay').classList.contains('on')) closeSheet();
   const tag = (document.activeElement || {}).tagName;

@@ -524,7 +524,7 @@ function bulkSheet() {
   showSheet(`<div class="bulk"><h2>Mehrere Aufgaben</h2>
     <div class="sub" style="margin:-8px 0 12px">Eine Aufgabe pro Zeile. Datum, Uhrzeit und #Projekt werden wie gewohnt erkannt.</div>
     <label class="field"><textarea id="bulk" placeholder="Eine Aufgabe pro Zeile …"></textarea></label>
-    <div class="bulkprev" id="bulkprev">${isMobile() ? '📷 <b>So scannst du einen Zettel:</b> ins leere Feld tippen, dann noch einmal tippen. Im kleinen Menü <b>Text scannen</b> wählen (Symbol ⊡ mit Textzeilen), Kamera auf den Zettel halten, <b>Einsetzen</b>.' : 'Text einfügen, zum Beispiel aus einer Notiz oder Mail.'}</div>
+    <div class="bulkprev" id="bulkprev">${isMobile() ? '📷 <b>So scannst du einen Zettel:</b> ins leere Feld tippen, dann noch einmal tippen. Im kleinen Menü <b>Automatisch ausfüllen → Text scannen</b> wählen, Kamera auf den Zettel halten, <b>Einsetzen</b>.' : 'Text einfügen, zum Beispiel aus einer Notiz oder Mail.'}</div>
     <div class="srow"><button data-sa="close">Abbrechen</button><button class="pri" data-sa="bulkadd">Übernehmen</button></div></div>`);
   if (!isMobile()) setTimeout(() => $('#bulk') && $('#bulk').focus(), 50);
 }

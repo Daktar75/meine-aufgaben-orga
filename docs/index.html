@@ -130,6 +130,9 @@ h1{font-size:28px;margin:0;font-weight:700;letter-spacing:-.02em}
 @keyframes pulse{50%{opacity:.6}}
 .morecap{display:block;margin:10px auto 0;font-size:13px;color:#c4b5fd;padding:6px 10px}
 .bulk textarea{min-height:180px;font-size:15px;line-height:1.5}
+.seg{display:flex;gap:4px;padding:4px;border-radius:14px;background:rgba(255,255,255,.06);margin:-4px 0 10px}
+.seg button{flex:1;padding:9px 6px;border-radius:10px;font-size:13px;color:var(--muted);line-height:1.2}
+.seg button.on{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;font-weight:600}
 .bulkprev{font-size:13px;color:var(--muted);margin:-4px 0 10px}
 .hrow{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-top:1px solid var(--line);gap:10px}
 .hrow small{color:var(--muted);display:block}
@@ -520,20 +523,31 @@ function addTask(text) {
 }
 
 const cleanLine = l => l.replace(/^\s*(?:[-–•*·▪◦☐☑✓✔□○]|\d+[.)]|\[\s?[xX]?\])\s+/, '').trim();
+const bulkMode = () => lsGet('aufgaben.bulkmode') || 'note';
+function bulkItems() {
+  const txt = ($('#bulk') || {}).value || '';
+  if (bulkMode() === 'line') return txt.split(/\n+/).map(cleanLine).filter(l => l.length > 1);
+  return txt.split(/\n\s*\n/).map(b => b.split('\n').map(cleanLine).filter(Boolean).join(' ').replace(/\s+/g, ' ').trim()).filter(l => l.length > 1);
+}
+function bulkPreview() {
+  const el = $('#bulkprev'), items = bulkItems(); if (!el || !items.length) return;
+  el.innerHTML = `<b>Wird ${items.length === 1 ? '1 Aufgabe' : items.length + ' Aufgaben'}:</b><br>` + items.slice(0, 6).map(i => '• ' + esc(parseQuick(i).title || i)).join('<br>') + (items.length > 6 ? '<br>…' : '');
+}
 function bulkSheet() {
-  showSheet(`<div class="bulk"><h2>Mehrere Aufgaben</h2>
-    <div class="sub" style="margin:-8px 0 12px">Eine Aufgabe pro Zeile. Datum, Uhrzeit und #Projekt werden wie gewohnt erkannt.</div>
-    <label class="field"><textarea id="bulk" placeholder="Eine Aufgabe pro Zeile …"></textarea></label>
+  const m = bulkMode(), seg = (v, l) => `<button data-bm="${v}" class="${m === v ? 'on' : ''}">${l}</button>`;
+  showSheet(`<div class="bulk"><h2>Zettel / mehrere Aufgaben</h2>
+    <div class="seg">${seg('note', 'Ganzer Zettel = 1 Aufgabe')}${seg('line', 'Jede Zeile = 1 Aufgabe')}</div>
+    <div class="sub" style="margin:0 0 12px">${m === 'note' ? 'Alle Zeilen werden zu einer Aufgabe. Eine Leerzeile trennt mehrere Aufgaben.' : 'Jede Zeile wird eine eigene Aufgabe.'} Datum, Uhrzeit und #Projekt werden erkannt.</div>
+    <label class="field"><textarea id="bulk" placeholder="${m === 'note' ? 'Text vom Zettel …' : 'Eine Aufgabe pro Zeile …'}"></textarea></label>
     <div class="bulkprev" id="bulkprev">${isMobile() ? '📷 <b>So scannst du einen Zettel:</b> ins leere Feld tippen, dann noch einmal tippen. Im kleinen Menü <b>Automatisch ausfüllen → Text scannen</b> wählen, Kamera auf den Zettel halten, <b>Einsetzen</b>.' : 'Text einfügen, zum Beispiel aus einer Notiz oder Mail.'}</div>
     <div class="srow"><button data-sa="close">Abbrechen</button><button class="pri" data-sa="bulkadd">Übernehmen</button></div></div>`);
   if (!isMobile()) setTimeout(() => $('#bulk') && $('#bulk').focus(), 50);
 }
 function bulkAdd() {
-  const lines = ($('#bulk').value || '').split(/\n+/).map(cleanLine).filter(l => l.length > 1);
-  if (!lines.length) return;
+  const items = bulkItems(); if (!items.length) return;
   const snap = snapshot(); let n = 0;
-  lines.forEach(l => { if (createTask(l)) n++; });
-  save(); closeSheet(); toast(`${n} Aufgaben übernommen`, () => restore(snap));
+  items.forEach(l => { if (createTask(l)) n++; });
+  save(); closeSheet(); toast(n === 1 ? '1 Aufgabe übernommen' : `${n} Aufgaben übernommen`, () => restore(snap));
 }
 function deleteTask(id) {
   if (!taskById(id)) return;
@@ -620,7 +634,7 @@ function settings() {
     ${cid() && S.settings.sync ? `<div class="gh"><span>Automatisch anmelden</span></div><label class="field"><span>Erneuert die Google-Anmeldung beim Öffnen der App selbst, ohne Tippen. Vorher in Google Cloud die Weiterleitungs-URI eintragen (siehe EINRICHTUNG.md), zuerst am PC einschalten.</span><select data-s="autologin"><option value="0" ${!S.settings.autologin ? 'selected' : ''}>Aus</option><option value="1" ${S.settings.autologin ? 'selected' : ''}>An</option></select></label>` : ''}
     ${cid() && S.settings.sync ? `<div class="gh"><span>Erinnerungen über Google Kalender</span></div><label class="field"><span>Aufgaben mit Uhrzeit werden als Termin im privaten Google Kalender angelegt. So klingelt das Handy auch bei geschlossener App.</span><select data-s="cal"><option value="0" ${!S.settings.cal ? 'selected' : ''}>Aus</option><option value="1" ${S.settings.cal ? 'selected' : ''}>An</option></select></label>` : ''}
     ${cid() ? `<div class="gh"><span>Aus Google Tasks übernehmen</span></div><div class="hrow"><small>Einmalig. Kopiert deine offenen Aufgaben, jede Liste wird ein Projekt. Google Tasks bleibt unverändert. Mehrfaches Importieren ist sicher, schon übernommene Aufgaben werden nicht doppelt angelegt.</small></div><div class="srow"><button data-sa="gimport">Jetzt importieren</button></div>` : ''}
-    <div class="hrow"><small>Version 12</small></div>
+    <div class="hrow"><small>Version 13</small></div>
     <div class="srow"><button class="pri" data-sa="close">Fertig</button></div>`);
 }
 function newProject() {
@@ -631,6 +645,7 @@ function newProject() {
 /* ---------- Ereignisse ---------- */
 document.addEventListener('click', e => {
   const mic = e.target.closest('[data-mic]'); if (mic) return dictate(mic);
+  const bm = e.target.closest('[data-bm]'); if (bm) { const v = ($('#bulk') || {}).value || ''; lsSet('aufgaben.bulkmode', bm.dataset.bm); bulkSheet(); $('#bulk').value = v; bulkPreview(); return; }
   const go = e.target.closest('[data-go]');
   if (go) { const [n, p] = go.dataset.go.split(':'); V = { name: n, project: p || null, q: '', filter: V.filter }; render(); window.scrollTo(0, 0); return; }
   const sa = e.target.closest('[data-sa]');
@@ -676,6 +691,7 @@ document.addEventListener('click', e => {
 });
 document.addEventListener('input', e => {
   if (e.target.id === 'qa' || e.target.id === 'qm') return updChips(e.target);
+  if (e.target.id === 'bulk') return bulkPreview();
   if (e.target.id === 'sq') { const v = e.target.value; if (v.trim()) { V = { name: 'search', project: null, q: v }; } else V = { name: 'today', project: null, q: '' }; const pos = v.length; render(); const s = $('#sq'); s.focus(); s.setSelectionRange(pos, pos); return; }
   const f = e.target.dataset.f; if (f) { const t = taskById($('#overlay').dataset.id); if (!t) return; let v = e.target.value; if (f === 'due' || f === 'time') v = v || null; if (f === 'repeat') v = v || null; if (f === 'title' && !v.trim()) return; t[f] = v; if (f === 'due' || f === 'time') t.notified = false; save(); }
 });
